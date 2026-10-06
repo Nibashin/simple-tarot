@@ -10,10 +10,23 @@
 :root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--w:min(68vw,300px,27svh)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:radial-gradient(ellipse at 50% 30%,#232a5e 0%,var(--bg) 60%);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+body{background:radial-gradient(ellipse at 50% 30%,#232a5e 0%,var(--bg) 60%);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bottom:28px}
-.scene{perspective:1200px;width:var(--w);aspect-ratio:1109/1920;margin:0 auto 24px}
-.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.7,.2,1);cursor:pointer;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
+.scene{perspective:1200px;width:var(--w);aspect-ratio:1109/1920;margin:0 auto 24px;position:relative}
+.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.55);background:rgba(28,32,80,.35);transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
+.ghost.l{animation:swayL 5s ease-in-out infinite}
+.ghost.r{animation:swayR 5.6s ease-in-out infinite}
+.ghost.l2{animation:swayL 7s ease-in-out infinite reverse;opacity:.5}
+.ghost.r2{animation:swayR 7.4s ease-in-out infinite reverse;opacity:.5}
+.done .ghost{opacity:0!important}
+@keyframes swayL{0%,100%{transform:rotate(-7deg) translateX(-6%)}50%{transform:rotate(-13deg) translateX(-12%)}}
+@keyframes swayR{0%,100%{transform:rotate(7deg) translateX(6%)}50%{transform:rotate(13deg) translateX(12%)}}
+.idle .card{animation:floaty 4s ease-in-out infinite}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.back::after{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 40%,rgba(236,230,214,.22),transparent 45%),radial-gradient(circle at 70% 65%,rgba(200,164,76,.18),transparent 40%);animation:mist 9s ease-in-out infinite;pointer-events:none}
+.done .back::after,.listen .back::after{display:none}
+@keyframes mist{0%,100%{transform:translate(0,0) rotate(0)}33%{transform:translate(8%,-6%) rotate(10deg)}66%{transform:translate(-7%,5%) rotate(-8deg)}}
+.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.7,.2,1);cursor:pointer;touch-action:none;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
 .card.flipped{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 12px 40px rgba(0,0,0,.55)}
 .back{background:#1c2050 repeating-linear-gradient(45deg,transparent 0 10px,rgba(200,164,76,.12) 10px 12px);border:3px solid var(--gold);outline:1px solid var(--gold);outline-offset:-10px}
@@ -25,6 +38,7 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .pulse{animation:pulse 2.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{box-shadow:0 12px 40px rgba(0,0,0,.55)}50%{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 6px rgba(200,164,76,.18)}}
 .msg{min-height:3.2em;font-size:16px;max-width:22em}
+.done .msg,.done .sub{display:none}
 .sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em}
 .sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 .meter{width:var(--w);height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:14px auto 0;overflow:hidden;visibility:hidden}
@@ -37,14 +51,14 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .result p{font-size:15px}
 .result button{margin-top:22px;background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 28px;font:inherit;font-size:15px;cursor:pointer}
 .hidden{display:none!important}
-footer{position:fixed;left:0;right:0;bottom:0;font-size:10px;color:#6b6a85;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg))}
+footer{margin-top:40px;font-size:10px;color:#6b6a85;max-width:28em}
 footer a{color:inherit}
-@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse{animation:none}}
+@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .card,.back::after{animation:none}}
 </style>
 </head>
 <body>
 <h1>シンプルタロット</h1>
-<div class="scene"><div class="card pulse" id="card" role="button" tabindex="0" aria-label="カード">
+<div class="scene"><div class="ghost l2"></div><div class="ghost r2"></div><div class="ghost l"></div><div class="ghost r"></div><div class="card pulse" id="card" role="button" tabindex="0" aria-label="カード">
   <div class="face back"><img id="back" alt="" src="cards/back.webp" onerror="this.remove()"></div>
   <div class="face front"><img id="art" alt=""></div>
 </div></div>
@@ -154,7 +168,7 @@ addEventListener("pointermove",e=>{mouseTrail.push(e.clientX,e.clientY,performan
 const PRIVACY="音は端末の中だけで使い、保存も送信もしません。";
 function setMsg(m,s){msg.textContent=m;sub.innerHTML=s||"";}
 function idle(){
-  state="idle";card.classList.remove("flipped","rev");card.classList.add("pulse");card.style.cssText="";
+  state="idle";document.body.classList.remove("done");document.body.classList.add("idle");card.classList.remove("flipped","rev");card.classList.add("pulse");card.style.cssText="";
   $("art").classList.remove("on");$("art").removeAttribute("src");$("result").style.display="none";meter.style.visibility="hidden";
   if(touch&&secure)setMsg("カードをタップして、息を吹きかけてください。",'あなたの息を混ぜてカードを選びます。'+PRIVACY+'<br><button class="link" id="finger" type="button">指で混ぜて引く</button>');
   else if(touch)setMsg("カードを指でなでて、カードを引いてください。",'指の動きを混ぜてカードを選びます。');
@@ -181,12 +195,12 @@ function f64(arr){return new Uint8Array(new Float64Array(arr).buffer);}
 function concat(...parts){const n=parts.reduce((s,p)=>s+p.length,0),o=new Uint8Array(n);let i=0;for(const p of parts){o.set(p,i);i+=p.length;}return o;}
 // ---- 結果表示 ----
 async function reveal(material){
-  state="done";stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
+  state="done";document.body.classList.remove("idle");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
   const {n,rev}=await pick(material);
   const c=C[n],art=$("art");
   card.classList.toggle("rev",rev);card.classList.remove("pulse");card.style.cssText="";
   art.alt=c[0];art.onload=()=>art.classList.add("on");art.src="cards/"+String(n).padStart(2,"0")+".webp";
-  setMsg("","");
+  setMsg("","");document.body.classList.add("done");
   $("name").textContent=c[0];$("en").textContent=c[1];
   $("badge").textContent=rev?"逆位置":"正位置";$("badge").className="badge"+(rev?" r":"");
   $("text").textContent=rev?c[3]:c[2];
@@ -194,7 +208,7 @@ async function reveal(material){
 }
 // ---- 息で引く ----
 async function startListen(){
-  state="listen";card.classList.remove("pulse");
+  state="listen";document.body.classList.remove("idle");card.classList.remove("pulse");
   setMsg("マイクを準備しています…","");
   try{
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
@@ -208,7 +222,7 @@ async function startListen(){
   const src=ac.createMediaStreamSource(stream),an=ac.createAnalyser();
   an.fftSize=2048;src.connect(an);
   const buf=new Uint8Array(an.fftSize),chunks=[];
-  let t0=performance.now(),ambient=0,amb=0,th=0.08,above=0,below=0,blowing=false,tStart=0,tEnd=0,lastHint=0;
+  let t0=performance.now(),ambient=0,amb=0,th=0.04,above=0,below=0,blowing=false,tStart=0,tEnd=0,lastHint=0;
   setMsg("ふーっと息を吹きかけてください。",PRIVACY);meter.style.visibility="visible";
   const tick=()=>{
     if(state!=="listen")return;
@@ -216,7 +230,7 @@ async function startListen(){
     an.getByteTimeDomainData(buf);
     let s=0;for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;s+=v*v;}
     const rms=Math.sqrt(s/buf.length);
-    if(now-t0<400){ambient+=rms;amb++;th=Math.min(0.3,Math.max(0.06,(ambient/amb)*3));raf=requestAnimationFrame(tick);return;}
+    if(now-t0<400){ambient+=rms;amb++;th=Math.min(0.15,Math.max(0.03,(ambient/amb)*2.5));raf=requestAnimationFrame(tick);return;}
     const k=Math.min(1,rms/(th*4));level.style.width=(k*100).toFixed(0)+"%";
     if(rms>th){above+=16;below=0;}else{below+=16;above=0;}
     if(!blowing&&above>=300){blowing=true;tStart=now;setMsg("そのまま…","");}
@@ -234,7 +248,7 @@ async function startListen(){
 function stopMic(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
 // ---- 指で混ぜる ----
 function startMix(){
-  stopMic();cancelAnimationFrame(raf);state="mix";fingerPts=[];card.classList.remove("pulse");meter.style.visibility="visible";level.style.width="0";
+  stopMic();cancelAnimationFrame(raf);state="mix";document.body.classList.remove("idle");fingerPts=[];card.classList.remove("pulse");meter.style.visibility="visible";level.style.width="0";
   setMsg("カードを指でぐるぐるなでてください。","なでた指の動きを混ぜてカードを選びます。");
 }
 function mixMove(e){
