@@ -68,16 +68,30 @@ def deskew(im):
 
 
 def make_border(tpl, box, size):
-    """代表のスキャンの縁の色を取り、わずかなムラを付けた均一な縁の画像を作る。"""
+    """代表のスキャンの縁から色と質感(粒子の強さ、ムラの強さ)を測り、同じ質感の紙を生成する。"""
+    from PIL import ImageFilter
     l, t, r, b = box
-    a = np.asarray(tpl).astype(np.int16)
-    patch = a[t + 100:t + 400, max(0, l - 25):max(1, l - 8)].reshape(-1, 3)
-    cream = np.median(patch, axis=0)
-    rng = np.random.default_rng(0)
+    a = np.asarray(tpl).astype(np.float32)
+    patch = a[t + 100:t + 500, max(0, l - 26):max(1, l - 8)]   # 黒枠の左の縁
+    cream = np.median(patch.reshape(-1, 3), axis=0)
+    # 粒子(細かい砂目)とムラ(ゆるやかな濃淡)の強さを実測する
+    small = Image.fromarray(patch.astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2))
+    grain = float((patch - np.asarray(small, dtype=np.float32)).std())
+    mottle = float(np.asarray(small, dtype=np.float32).reshape(-1, 3).std(axis=0).mean())
     w, h = size
-    noise = rng.normal(0, 2.2, size=(h, w, 1))
-    img = np.clip(cream + noise, 0, 255).astype(np.uint8)
-    return Image.fromarray(img)
+    rng = np.random.default_rng(0)
+
+    def layer(sigma, amp):
+        n = rng.normal(0, 1, size=(h, w)).astype(np.float32)
+        im = Image.fromarray(np.clip(n * 40 + 128, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(sigma))
+        v = (np.asarray(im, dtype=np.float32) - 128) / 40
+        return v / max(v.std(), 1e-6) * amp
+
+    tone = layer(0.7, grain * 1.8) + layer(6, mottle * 1.0) + layer(24, mottle * 0.9)   # 粒子 + 細かいムラ + 大きなムラ
+    # 紙の繊維に見えるよう、わずかに黄みが揺れる成分を足す
+    warm = layer(10, mottle * 0.25)
+    img = np.stack([cream[0] + tone + warm, cream[1] + tone, cream[2] + tone - warm], axis=2)
+    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
 
 
 def save_webp(im, dest):
