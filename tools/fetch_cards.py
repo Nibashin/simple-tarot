@@ -63,7 +63,7 @@ def to_webp(data, dest):
 
 def make_back(dest):
     """仮の裏面。上下対称の幾何学模様。ChatGPT で作った画像に差し替える前提。"""
-    w, h = WIDTH, 680
+    w, h = WIDTH, 671
     im = Image.new("RGB", (w, h), (24, 28, 64))
     d = ImageDraw.Draw(im)
     gold = (196, 160, 72)
