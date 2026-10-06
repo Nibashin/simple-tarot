@@ -1,4 +1,4 @@
-"""スキャン 78 枚の黒い内枠を検出して切り抜き、1 枚の代表的な白枠に当て込んで位置をそろえる。
+"""スキャン 78 枚の黒い内枠を検出して切り抜き、白い余白なしで同じ大きさにそろえる。
 
 使い方:  python tools/fetch_cards.py   (先にスキャンをキャッシュしておく)
          python tools/normalize_cards.py
@@ -13,7 +13,7 @@ from PIL import Image
 
 from fetch_cards import CACHE, FILES, OUT, TARGET_KB, WIDTH
 
-TEMPLATE = 0          # 白枠の代表に使うカード(0 = 愚者)
+TEMPLATE = 0          # 縦横比の基準にするカード(0 = 愚者)
 DARK = 90             # これより暗い画素を「黒」とみなす
 LINE = 0.55           # 行・列のうち黒が占める割合がこれ以上なら枠線
 MARGIN = 0.01         # 画像の外周(スキャンの縁)は無視する
@@ -56,14 +56,10 @@ def main():
     scans = [Image.open(CACHE / f).convert("RGB") for f in FILES]
     boxes = [frame_box(im) for im in scans]
 
-    # 代表の白枠を目標幅に縮小し、その中の黒枠の位置を当て込み先にする
-    tpl = scans[TEMPLATE]
-    s = WIDTH / tpl.width
-    template = tpl.resize((WIDTH, round(tpl.height * s)), Image.LANCZOS)
+    # 代表(愚者)の黒枠の縦横比に合わせ、白い余白なしで切り抜く
     l, t, r, b = boxes[TEMPLATE]
-    box = (round(l * s), round(t * s), round((r + 1) * s), round((b + 1) * s))
-    bw, bh = box[2] - box[0], box[3] - box[1]
-    print(f"白枠: {template.size}, 絵の枠: {box} ({bw}x{bh})")
+    bw, bh = WIDTH, round(WIDTH * (b - t + 1) / (r - l + 1))
+    print(f"出力サイズ: {bw}x{bh}")
 
     thumbs, total = [], 0
     for i, (im, (l, t, r, b)) in enumerate(zip(scans, boxes)):
@@ -71,9 +67,7 @@ def main():
         ratio = (art.width / art.height) / (bw / bh)
         if abs(ratio - 1) > 0.04:
             print(f"  注意: {FILES[i]} の枠の縦横比が代表と {ratio:.3f} 倍ずれている")
-        art = art.resize((bw, bh), Image.LANCZOS)
-        card = template.copy()
-        card.paste(art, (box[0], box[1]))
+        card = art.resize((bw, bh), Image.LANCZOS)
         q, size = save_webp(card, OUT / f"{i:02d}.webp")
         total += size
         thumbs.append(card.resize((120, round(card.height * 120 / card.width))))
