@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="息を吹きかけると、タロットカードが1枚引けます。">
+<meta name="theme-color" content="#141838">
+<title>シンプルタロット</title>
+<style>
+:root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--w:min(68vw,300px,27svh)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:radial-gradient(ellipse at 50% 30%,#232a5e 0%,var(--bg) 60%);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bottom:28px}
+.scene{perspective:1200px;width:var(--w);aspect-ratio:1109/1920;margin:0 auto 24px}
+.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.7,.2,1);cursor:pointer;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.back{background:#1c2050 repeating-linear-gradient(45deg,transparent 0 10px,rgba(200,164,76,.12) 10px 12px);border:3px solid var(--gold);outline:1px solid var(--gold);outline-offset:-10px}
+.back img{width:100%;height:100%;display:block;object-fit:cover}
+.front{background:#f4edd8;transform:rotateY(180deg)}
+.front img{width:100%;height:100%;display:block;object-fit:cover;opacity:0;transition:opacity .4s}
+.front img.on{opacity:1}
+.rev .front img{transform:rotate(180deg)}
+.pulse{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 12px 40px rgba(0,0,0,.55)}50%{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 6px rgba(200,164,76,.18)}}
+.msg{min-height:3.2em;font-size:16px;max-width:22em}
+.sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em}
+.sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+.meter{width:var(--w);height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:14px auto 0;overflow:hidden;visibility:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--gold);transition:width .08s}
+.result{display:none;max-width:24em;margin-top:4px}
+.result h2{font-size:22px;font-weight:600;letter-spacing:.05em}
+.result .en{font-size:12px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
+.badge{display:inline-block;font-size:12px;padding:1px 10px;border:1px solid var(--gold);border-radius:12px;color:var(--gold);margin:8px 0 10px}
+.badge.r{border-color:#c47a7a;color:#e0a0a0}
+.result p{font-size:15px}
+.result button{margin-top:22px;background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 28px;font:inherit;font-size:15px;cursor:pointer}
+.hidden{display:none!important}
+footer{position:fixed;left:0;right:0;bottom:0;font-size:10px;color:#6b6a85;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg))}
+footer a{color:inherit}
+@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse{animation:none}}
+</style>
+</head>
+<body>
+<h1>シンプルタロット</h1>
+<div class="scene"><div class="card pulse" id="card" role="button" tabindex="0" aria-label="カード">
+  <div class="face back"><img id="back" alt="" src="cards/back.webp" onerror="this.remove()"></div>
+  <div class="face front"><img id="art" alt=""></div>
+</div></div>
+<div class="meter" id="meter"><i id="level"></i></div>
+<p class="msg" id="msg"></p>
+<p class="sub" id="sub"></p>
+<section class="result" id="result">
+  <h2 id="name"></h2><div class="en" id="en"></div>
+  <div class="badge" id="badge"></div>
+  <p id="text"></p>
+  <button id="again" type="button">もう一度引く</button>
+</section>
+<footer>画像: Pamela Colman Smith, 1909 (パブリックドメイン, <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck" target="_blank" rel="noopener">Wikimedia Commons</a>) / 意味: A. E. Waite, The Pictorial Key to the Tarot, 1911 を要約・訳出。占いは楽しむためのものです。</footer>
+<script>
+// ---- カード 78 枚: [名前, 英名, 正位置の意味, 逆位置の意味] ----
+// 意味は The Pictorial Key to the Tarot (1911) の占的意味をやさしく訳したもの
+const C=[
+["愚者","The Fool","考えるより先に飛び出す時。無邪気さと勢いが、思いがけない方向へ連れていく。","軽はずみ、うっかり、気の抜けた状態。足元を見ずに進んでいないか確かめて。"],
+["魔術師","The Magician","技能、機転、巧みな対応。意志と自信があれば、手持ちの道具で道は開ける。","見せかけの技、落ち着かない心、自信の空回り。不調や評判の低下にも注意。"],
+["女教皇","The High Priestess","秘密、まだ明かされない未来。沈黙と忍耐、そして静かな知恵が答えを運ぶ。","情熱が先走る。表面的な知識やうぬぼれが、本当の答えを見えなくする。"],
+["女帝","The Empress","実り、行動、長く続く豊かさ。始めたことが育つ。隠れた事情には注意。","真実が明るみに出て、もつれが解ける。喜び。ただし心が揺れやすい時。"],
+["皇帝","The Emperor","安定、力、守り、実現。理性と信念で物事を動かせる。頼れる人の助けも。","思いやりと寛大さ。一方で混乱や妨げ、まだ力が足りない未熟さも。"],
+["教皇","The Hierophant","結びつき、約束、ならわし。慈悲と善意。頼りになる相談相手が現れる。","人のつながりは良好だが、親切すぎて弱くなる。形だけの付き合いに注意。"],
+["恋人","The Lovers","引き合う心、愛、美しさ。試練を乗り越えて結ばれる。","失敗、愚かな計画。望んだ結びつきが思うように進まない。食い違いの多い時。"],
+["戦車","The Chariot","救い、導き、勝利。ただし思い上がりや争い、仕返しの気持ちには注意。","騒ぎ、口論、争い、訴え。無理に押し通すと敗れる。"],
+["力","Strength","力、気力、行動、勇気、度量の大きさ。完全な成功と名誉。","力の乱用、横暴。あるいは弱さと不和。評判を落とすこともある。"],
+["隠者","The Hermit","慎重さ、用心深さ。ただし裏切りや隠しごと、ごまかしにも気をつけて。","隠しごと、偽り、駆け引き。理由のない恐れと、行き過ぎた用心。"],
+["運命の輪","Wheel of Fortune","運命、幸運、成功、引き上げられる時。巡り合わせが味方する。","増える、満ちる、余りある。度を越した豊かさには注意。"],
+["正義","Justice","公平、正しさ、誠実。正しい側が認められ、筋の通った結果が出る。","法や手続きの複雑さ、偏り、かたくなさ、厳しすぎる裁き。"],
+["吊るされた男","The Hanged Man","知恵、慎重さ、見極める目。試練と犠牲のあとに、直感とひらめきが来る。","自分本位。周りに流され、群れの中で自分を見失う。"],
+["死神","Death","終わり、ひとつの区切り、崩れて変わる時。失うものがあるが、次が始まる。","動けない、眠ったまま、立ちすくむ。希望が失われたように感じる時。"],
+["節制","Temperance","節度、やりくり、ほどよい調整。無理なく組み合わせてうまく進める。","信仰や儀式にまつわること。分裂、うまくいかない組み合わせ、利害の衝突。"],
+["悪魔","The Devil","激しさ、強い力、並外れた努力。避けられない運命。だが悪いとは限らない。","悪い巡り合わせ、弱さ、ささいなことへのこだわり、盲目。"],
+["塔","The Tower","突然の崩壊、苦境、思いがけない災難、失墜。予期しない出来事への警告。","同じ意味がやや弱まる。抑圧、閉じ込められる、縛られる感覚。"],
+["星","The Star","希望と明るい見通し。ただし失うもの、奪われるもの、見捨てられる感覚も。","うぬぼれ、高慢、無力感。期待の空回り。"],
+["月","The Moon","隠れた敵、危険、中傷、闇、恐れ、惑わし。見えない力と思い違いに注意。","不安定、移り気、沈黙。惑わしや誤りは、正位置よりは軽い。"],
+["太陽","The Sun","物質的な幸せ、恵まれた結びつき、満ち足りた気持ち。","同じ意味がやや弱まる。幸せはあるが、少し曇りがち。"],
+["審判","Judgement","立場の変化、よみがえり、結論が出る時。別の読み方では訴えによる損失。","弱気、気の小ささ、単純さ。あるいは熟考ののちの決断と判決。"],
+["世界","The World","確かな成功、報い、旅、道のり、住まいの変化。ひとつの完成。","動けない、固定、停滞、変わらないまま。"],
+["棒のエース","Ace of Wands","創造、発明、事業の始まり。源、起点、誕生。家族や財産、相続にも関わる。","転落、衰え、台無しになる。喜びがあっても、どこか曇っている。"],
+["棒の2","Two of Wands","富、幸運、堂々とした成功。しかし心の痛みや悲しみ、病もともなう。","驚き、不思議、心を奪われる。感情の揺れ、困りごと、恐れ。"],
+["棒の3","Three of Wands","確かな力、事業、努力、取引、商売、発見。船が出ていく。","困難の終わり。逆境と苦労がひと休みする。失望からの回復。"],
+["棒の4","Four of Wands","田舎暮らし、安らぎの場所、調和、繁栄、平和、仕上がった仕事。","意味は変わらない。繁栄、増加、幸せ、美しさ、飾ること。"],
+["棒の5","Five of Wands","模擬戦、激しい競争、富と利益をめぐる争い。張り合いの中で得るもの。","訴え、口論、ごまかし、言い合い。"],
+["棒の6","Six of Wands","勝者の凱旋、大きな知らせ、望みがかなう期待。","心配、恐れ。門の前の敵のように感じる。裏切り、不誠実、長引く遅れ。"],
+["棒の7","Seven of Wands","勇気、議論、言葉の戦い、交渉、商売の競争。踏ん張れば成功する。","困惑、気まずさ、不安。決めかねていると足をすくわれる。"],
+["棒の8","Eight of Wands","動き、速さ、大急ぎ、大きな希望。目的へ一直線。恋の矢が飛ぶ。","嫉妬の矢、内輪もめ、良心の痛み、口げんか。家庭内の争い。"],
+["棒の9","Nine of Wands","反対にあっても持ちこたえる力。遅れ、保留、延期。","障害、逆境、災い。"],
+["棒の10","Ten of Wands","重荷。富と利益、成功を得るが、その重さに押しつぶされそうになる。","邪魔、難しさ、たくらみ。背負いすぎに注意。"],
+["棒のペイジ","Page of Wands","誠実な若者、使者、知らせを運ぶ人。良い便り。恋の相手になることも。","うわさ話、知らせ、悪い便り。決められない、落ち着かない。"],
+["棒のナイト","Knight of Wands","出発、不在、旅立ち、移住。引っ越し。親しい若者。","断絶、分裂、中断、不和。"],
+["棒のクイーン","Queen of Wands","親しみやすく、清らかで、愛情深い人。お金を大切にし、商売で成功する。","良い人だが、倹約家。反対、嫉妬、欺き、不誠実の面も。"],
+["棒のキング","King of Wands","親切で誠実な人。たいてい家庭を持ち、良心的。頼れる相談相手。","善良だが厳しい。きまじめで、それでいて寛容。"],
+["杯のエース","Ace of Cups","真実の心の家。喜び、満足、住まい、養い、豊かさ、実り。","偽りの心の家。移り変わり、不安定、ひっくり返る。"],
+["杯の2","Two of Cups","愛、情熱、友情、結びつき、一致、共感。互いに引き合う関係。","情熱が先走る。すれ違い、愚かさ、誤解に注意。"],
+["杯の3","Three of Cups","物事が豊かに、完全に、楽しく終わる。良い結末、勝利、慰め、癒し。","早すぎる達成、終わり。あるいは楽しみすぎ、快楽への行き過ぎ。"],
+["杯の4","Four of Cups","飽き、うんざり、気が進まない。差し出された杯に目を向けられない。","新しさ、兆し、新しい学び、新しい関係。"],
+["杯の5","Five of Cups","失うが、何かは残る。相続や受け継ぎが期待と違う。苦い思いを含む結びつき。","知らせ、縁、血のつながり、帰還。あてにならない計画。"],
+["杯の6","Six of Cups","過去と思い出。子どもの頃のような幸せ。消えてしまったものへの郷愁。","未来、更新。まもなく起こること。"],
+["杯の7","Seven of Cups","空想、幻影、感傷、想像。心に浮かぶ像。得るものはあるが、形にはならない。","欲望、意志、決意、計画。"],
+["杯の8","Eight of Cups","物事の衰え、あるいは大したことではない。喜び、穏やかさ、内気さ、慎み。","大きな喜び、幸せ、宴。"],
+["杯の9","Nine of Cups","調和、満足、体の健やかさ。勝利、成功、有利。願いがかなう。","真実、誠実、自由。ただし間違いや不完全さもある。"],
+["杯の10","Ten of Cups","心からの満足と安らぎ。愛と友情の完成。住んでいる町や故郷。","偽りの心の安らぎ。憤り、激しい感情。"],
+["杯のペイジ","Page of Cups","人に尽くそうとする若者、勉強熱心な人。知らせ、便り。熟考と瞑想。","好み、傾き、執着。誘惑、欺き、たくらみ。"],
+["杯のナイト","Knight of Cups","到着、接近。使者が来る。申し出、提案、招待、誘い。","ごまかし、策略、たくらみ、詐欺、二枚舌。"],
+["杯のクイーン","Queen of Cups","誠実で献身的な人。愛情深い知性、見通す力。成功、幸せ、喜び、知恵。","信用できない人。ひねくれ、不道徳、不名誉。"],
+["杯のキング","King of Cups","仕事、法律、信仰に携わる責任ある人。公平、芸術、科学、創造的な知性。","不誠実で裏表のある人。悪だくみ、搾取、不正、醜聞。"],
+["剣のエース","Ace of Swords","勝利、何事においても極端な度合い。征服、力の勝利。愛でも憎しみでも強い力。","同じだが、結果は災いになる。別の読み方では受胎、出産、増加。"],
+["剣の2","Two of Swords","均衡、張りつめた中での勇気と友情、一致。別の読み方では優しさと親密さ。","偽り、うそ、二枚舌、不誠実。"],
+["剣の3","Three of Swords","引き離される、不在、遅れ、分裂、断絶、散り散り。絵のとおりの心の痛み。","心の乱れ、間違い、損失、取り乱す、混乱。"],
+["剣の4","Four of Swords","見張り、退却、孤独、隠者の休息、追放。墓と棺。","賢明な管理、慎重さ、倹約、用心。遺言。"],
+["剣の5","Five of Swords","格下げ、破壊、取り消し、不名誉、損失。それに似たことすべて。","同じ意味。埋葬と葬儀。"],
+["剣の6","Six of Swords","水の旅、道、道のり。使者、代理人、便法。向こう岸へ渡る。","宣言、告白、公表。別の読み方では愛の告白。"],
+["剣の7","Seven of Swords","計画、試み、願い、希望、自信。ただし口論や、失敗しそうな計画、いら立ちも。","良い助言、忠告、教え。中傷、おしゃべり。"],
+["剣の8","Eight of Swords","悪い知らせ、激しい悩み、危機、非難。縛られた力、争い、中傷。病気も。","不安、困難、反対、事故、裏切り。思いがけないこと、運命。"],
+["剣の9","Nine of Swords","失敗、流産、遅れ、欺き、失望、絶望。眠れない夜。","閉じ込められる、疑い、ためらい、もっともな恐れ、恥。"],
+["剣の10","Ten of Swords","痛み、苦しみ、涙、悲しみ、寂しさ。ただし死を告げるカードではない。","利益、成功、好意。だがどれも長続きしない。力と権威も。"],
+["剣のペイジ","Page of Swords","権威、監督、秘密の任務、見張り、偵察、調査。","それらの悪い面。思いがけないこと、備えのない状態。病気の暗示も。"],
+["剣のナイト","Knight of Swords","技能、勇敢さ、能力、防御。敵意、怒り、戦い、破壊、抵抗。","軽率、無能、浪費。"],
+["剣のクイーン","Queen of Swords","喪失、女性の悲しみと困惑、不在、不毛、喪、欠乏、別離。","悪意、かたくなさ、たくらみ、上品ぶる、災い、欺き。"],
+["剣のキング","King of Swords","判断にまつわるすべて。力、命令、権威、鋭い知性、法、公の職務。","残酷、ひねくれ、野蛮、裏切り、悪意。"],
+["金貨のエース","Ace of Pentacles","完全な満足、幸福、歓喜。素早い知らせ。金。","富の悪い面、悪い知らせ。それでも大きな富と安楽な暮らしはある。"],
+["金貨の2","Two of Pentacles","陽気さ、娯楽、気晴らし。一方で書面の知らせ、障害、動揺、もつれ。","無理をした陽気さ、作り笑い。手紙、文書、為替。"],
+["金貨の3","Three of Pentacles","職業、商売、熟練の仕事。高貴さ、名声、栄光のカードともされる。","仕事でもそれ以外でも凡庸。子どもっぽさ、ささいなこと、弱さ。"],
+["金貨の4","Four of Pentacles","所有の確かさ。持っているものにしがみつく。贈り物、遺産、相続。","宙ぶらりん、遅れ、反対。"],
+["金貨の5","Five of Pentacles","何より物質的な苦しみ。困窮。別の読み方では恋人や伴侶、親しい人との縁。","無秩序、混沌、破滅、不和、放蕩。"],
+["金貨の6","Six of Pentacles","贈り物、授かりもの、満足。今がその時。目配り、現在の繁栄。","欲望、強欲、ねたみ、嫉妬、幻想。"],
+["金貨の7","Seven of Pentacles","お金、商売、取引のカード。口論の読みもあれば、無垢と工夫の読みもある。","貸そうとしているお金についての心配。"],
+["金貨の8","Eight of Pentacles","仕事、雇用、依頼、職人の技。商売の腕前。まだ準備の段階かもしれない。","むなしい野心、虚栄、強欲、搾取。技を悪知恵に使う面も。"],
+["金貨の9","Nine of Pentacles","慎重さ、安全、成功、達成、確信、見極める力。","悪だくみ、欺き、計画の無効、不誠実。"],
+["金貨の10","Ten of Pentacles","利益、富。家のこと、記録、家系、一族の住まい。","偶然、運命、損失、盗難、賭け事。贈り物、持参金、年金。"],
+["金貨のペイジ","Page of Pentacles","勤勉、勉強、学問、熟考。知らせと使者の読みも。規則、管理。","浪費、散財、気前のよさ、ぜいたく。好ましくない知らせ。"],
+["金貨のナイト","Knight of Pentacles","役に立つこと、奉仕、関心、責任、正しさ。現実の面で堅実。","動かない、怠け、停滞。あるいは穏やかさ、落胆、不注意。"],
+["金貨のクイーン","Queen of Pentacles","豊かさ、寛大さ、壮麗、安全、自由。","悪意、疑い、宙ぶらりん、恐れ、不信。"],
+["金貨のキング","King of Pentacles","勇気、現実的な知性、商才、しっかりした知性。数学の才能。それらの道での成功。","悪徳、弱さ、醜さ、ひねくれ、腐敗、危険。"]
+];
+// ---- 状態 ----
+const $=id=>document.getElementById(id);
+const card=$("card"),msg=$("msg"),sub=$("sub"),meter=$("meter"),level=$("level");
+const touch=matchMedia("(pointer: coarse)").matches;
+const secure=window.isSecureContext&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+let state="idle";   // idle | listen | mix | done
+let stream=null,raf=0,fingerPts=[];
+const mouseTrail=[];  // PCのマウス軌跡(ハッシュの材料)
+addEventListener("pointermove",e=>{mouseTrail.push(e.clientX,e.clientY,performance.now());if(mouseTrail.length>900)mouseTrail.splice(0,300);},{passive:true});
+
+const PRIVACY="音は端末の中だけで使い、保存も送信もしません。";
+function setMsg(m,s){msg.textContent=m;sub.innerHTML=s||"";}
+function idle(){
+  state="idle";card.classList.remove("flipped","rev");card.classList.add("pulse");card.style.cssText="";
+  $("art").classList.remove("on");$("art").removeAttribute("src");$("result").style.display="none";meter.style.visibility="hidden";
+  if(touch&&secure)setMsg("カードをタップして、息を吹きかけてください。",'あなたの息を混ぜてカードを選びます。'+PRIVACY+'<br><button class="link" id="finger" type="button">指で混ぜて引く</button>');
+  else if(touch)setMsg("カードを指でなでて、カードを引いてください。",'指の動きを混ぜてカードを選びます。');
+  else setMsg("カードをクリックして引いてください。",'マウスの動きを混ぜてカードを選びます。');
+  const f=$("finger");if(f)f.addEventListener("click",e=>{e.stopPropagation();startMix();});
+}
+// ---- 乱数: 材料 → SHA-256 → ブラウザ乱数と混ぜて SHA-256 → 0〜77 と向き ----
+async function digest(b){return new Uint8Array(await crypto.subtle.digest("SHA-256",b));}
+async function pick(material){
+  let h;
+  if(crypto.subtle){
+    const h1=await digest(material);
+    const mix=new Uint8Array(64);mix.set(h1);mix.set(crypto.getRandomValues(new Uint8Array(32)),32);
+    h=await digest(mix);
+  }else h=crypto.getRandomValues(new Uint8Array(32));
+  for(let round=0;;round++){
+    for(let i=0;i<h.length-1;i++)if(h[i]<234)return{n:h[i]%78,rev:(h[i+1]&1)===1};
+    // 全バイトが 234 以上(ほぼ起きない)なら、もう一度ハッシュ
+    const again=new Uint8Array(33);again.set(h);again[32]=round;
+    h=crypto.subtle?await digest(again):crypto.getRandomValues(new Uint8Array(32));
+  }
+}
+function f64(arr){return new Uint8Array(new Float64Array(arr).buffer);}
+function concat(...parts){const n=parts.reduce((s,p)=>s+p.length,0),o=new Uint8Array(n);let i=0;for(const p of parts){o.set(p,i);i+=p.length;}return o;}
+// ---- 結果表示 ----
+async function reveal(material){
+  state="done";stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
+  const {n,rev}=await pick(material);
+  const c=C[n],art=$("art");
+  card.classList.toggle("rev",rev);card.classList.remove("pulse");card.style.cssText="";
+  art.alt=c[0];art.onload=()=>art.classList.add("on");art.src="cards/"+String(n).padStart(2,"0")+".webp";
+  setMsg("","");
+  $("name").textContent=c[0];$("en").textContent=c[1];
+  $("badge").textContent=rev?"逆位置":"正位置";$("badge").className="badge"+(rev?" r":"");
+  $("text").textContent=rev?c[3]:c[2];
+  requestAnimationFrame(()=>{card.classList.add("flipped");setTimeout(()=>{$("result").style.display="block";},700);});
+}
+// ---- 息で引く ----
+async function startListen(){
+  state="listen";card.classList.remove("pulse");
+  setMsg("マイクを準備しています…","");
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  }catch(e){
+    setMsg("マイクが使えないので、指で混ぜて引きます。","");
+    return setTimeout(startMix,900);
+  }
+  if(state!=="listen")return stopMic();
+  const ac=new (window.AudioContext||window.webkitAudioContext)();
+  await ac.resume();
+  const src=ac.createMediaStreamSource(stream),an=ac.createAnalyser();
+  an.fftSize=2048;src.connect(an);
+  const buf=new Uint8Array(an.fftSize),chunks=[];
+  let t0=performance.now(),ambient=0,amb=0,th=0.08,above=0,below=0,blowing=false,tStart=0,tEnd=0,lastHint=0;
+  setMsg("ふーっと息を吹きかけてください。",PRIVACY);meter.style.visibility="visible";
+  const tick=()=>{
+    if(state!=="listen")return;
+    const now=performance.now();
+    an.getByteTimeDomainData(buf);
+    let s=0;for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;s+=v*v;}
+    const rms=Math.sqrt(s/buf.length);
+    if(now-t0<400){ambient+=rms;amb++;th=Math.min(0.3,Math.max(0.06,(ambient/amb)*3));raf=requestAnimationFrame(tick);return;}
+    const k=Math.min(1,rms/(th*4));level.style.width=(k*100).toFixed(0)+"%";
+    if(rms>th){above+=16;below=0;}else{below+=16;above=0;}
+    if(!blowing&&above>=300){blowing=true;tStart=now;setMsg("そのまま…","");}
+    if(blowing){
+      if(chunks.length<120)chunks.push(buf.slice());
+      card.style.setProperty("--tilt",((Math.random()-.5)*k*10).toFixed(2)+"deg");
+      card.style.setProperty("--dx",((Math.random()-.5)*k*12).toFixed(1)+"px");
+      card.style.setProperty("--dy",((Math.random()-.5)*k*8).toFixed(1)+"px");
+      if(below>=400||now-tStart>4000){tEnd=now;ac.close();return reveal(concat(...chunks,f64([tStart,tEnd,Date.now()])));}
+    }else if(now-t0>12000&&!lastHint){lastHint=1;setMsg("ふーっと息を吹きかけてください。",'反応しないときは <button class="link" id="finger2" type="button">指で混ぜて引く</button>');$("finger2").addEventListener("click",e=>{e.stopPropagation();ac.close();startMix();});}
+    raf=requestAnimationFrame(tick);
+  };
+  raf=requestAnimationFrame(tick);
+}
+function stopMic(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+// ---- 指で混ぜる ----
+function startMix(){
+  stopMic();cancelAnimationFrame(raf);state="mix";fingerPts=[];card.classList.remove("pulse");meter.style.visibility="visible";level.style.width="0";
+  setMsg("カードを指でぐるぐるなでてください。","なでた指の動きを混ぜてカードを選びます。");
+}
+function mixMove(e){
+  if(state!=="mix"||!(e.buttons&1||e.pointerType==="touch"))return;
+  fingerPts.push(e.clientX,e.clientY,performance.now());
+  const k=Math.min(1,fingerPts.length/150);level.style.width=(k*100).toFixed(0)+"%";
+  card.style.setProperty("--tilt",((Math.random()-.5)*k*8).toFixed(2)+"deg");
+  if(fingerPts.length>=150)reveal(concat(f64(fingerPts),f64([Date.now()])));
+}
+// ---- 入力 ----
+card.addEventListener("pointermove",mixMove,{passive:true});
+card.addEventListener("pointerdown",e=>{if(state==="mix")mixMove(e);});
+card.addEventListener("pointerup",()=>{if(state==="mix"&&fingerPts.length>=60)reveal(concat(f64(fingerPts),f64([Date.now()])));});
+card.addEventListener("click",()=>{
+  if(state!=="idle")return;
+  if(touch&&secure)startListen();
+  else if(touch)startMix();
+  else reveal(concat(f64(mouseTrail),f64([performance.now(),Date.now()])));
+});
+card.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&state==="idle"){e.preventDefault();card.click();}});
+$("again").addEventListener("click",idle);
+addEventListener("pagehide",stopMic);
+idle();
+</script>
+</body>
+</html>
