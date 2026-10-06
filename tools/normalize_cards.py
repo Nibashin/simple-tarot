@@ -1,5 +1,5 @@
-"""スキャン 78 枚の黒い内枠を検出して切り抜き、1 枚の代表的な白枠(愚者)に当て込んで位置をそろえる。
-代表の白枠は、カードの外にあるスキャン台の真っ白な帯を切り落とし、丸い角の白をクリーム色で埋める。
+"""スキャン 78 枚の傾きを補正し、黒い内枠を検出して切り抜き、新しく作った均一なクリーム色の縁に当て込む。
+縁の色は代表(愚者)のスキャンの縁から取る。
 
 使い方:  python tools/fetch_cards.py   (先にスキャンをキャッシュしておく)
          python tools/normalize_cards.py
@@ -14,8 +14,8 @@ from PIL import Image
 
 from fetch_cards import CACHE, FILES, OUT, TARGET_KB, WIDTH
 
-TEMPLATE = 0          # 白枠の代表に使うカード(0 = 愚者)
-WHITE = 232           # これより明るい画素は「スキャン台の白」とみなす
+TEMPLATE = 0          # 縁の色と縦横比の基準にするカード(0 = 愚者)
+MARGIN_PX = 22        # 出力での縁の幅(px)
 DARK = 90             # これより暗い画素を「黒」とみなす
 LINE = 0.55           # 行・列のうち黒が占める割合がこれ以上なら枠線
 MARGIN = 0.01         # 画像の外周(スキャンの縁)は無視する
@@ -43,28 +43,41 @@ def frame_box(im):
     raise RuntimeError("枠線が見つからない")
 
 
-def clean_template(im, box):
-    """スキャン台の白い帯を切り落とし、丸い角の外の白をクリーム色で埋める。黒枠の座標も合わせて返す。"""
-    a = np.asarray(im).astype(np.int16)
-    white = a.min(axis=2) > WHITE
-    cols = np.where(white.mean(axis=0) < 0.5)[0]
-    rows = np.where(white.mean(axis=1) < 0.5)[0]
-    x0, x1, y0, y1 = int(cols[0]), int(cols[-1]) + 1, int(rows[0]), int(rows[-1]) + 1
-    a = a[y0:y1, x0:x1].copy()
-    white = white[y0:y1, x0:x1]
-    h, w = white.shape
-    # 縁のクリーム色(黒枠の外側の帯)を取り、四隅の白い画素をそれで埋める
+def deskew(im):
+    """黒枠の上下の線の傾きから回転角を求め、水平に補正する。"""
+    l, t, r, b = frame_box(im)
+    g = np.asarray(im.convert("L")).astype(np.float32)
+    dark = 255 - g
+    xs = (l + 40, l + 240, r - 240, r - 40)
+
+    def line_y(y0, y1):
+        ys = []
+        for x0, x1 in ((xs[0], xs[1]), (xs[2], xs[3])):
+            prof = dark[y0:y1, x0:x1].mean(axis=1)
+            ys.append(y0 + float((prof * np.arange(len(prof))).sum() / prof.sum()))
+        return ys
+
+    top = line_y(max(0, t - 20), t + 30)
+    bot = line_y(b - 30, min(im.height, b + 20))
+    dx = (xs[2] + xs[3]) / 2 - (xs[0] + xs[1]) / 2
+    ang = np.degrees(np.arctan2(((top[1] - top[0]) + (bot[1] - bot[0])) / 2, dx))
+    if abs(ang) < 0.03:
+        return im, 0.0
+    cream = tuple(int(v) for v in np.median(np.asarray(im)[t + 100:t + 400, max(0, l - 25):max(1, l - 8)].reshape(-1, 3), axis=0))
+    return im.rotate(ang, Image.BICUBIC, fillcolor=cream), float(ang)
+
+
+def make_border(tpl, box, size):
+    """代表のスキャンの縁の色を取り、わずかなムラを付けた均一な縁の画像を作る。"""
     l, t, r, b = box
-    cream = np.median(a[t + 100:t + 400, max(0, l - x0 - 25):max(1, l - x0 - 8)].reshape(-1, 3), axis=0)
+    a = np.asarray(tpl).astype(np.int16)
+    patch = a[t + 100:t + 400, max(0, l - 25):max(1, l - 8)].reshape(-1, 3)
+    cream = np.median(patch, axis=0)
     rng = np.random.default_rng(0)
-    corner = np.zeros((h, w), bool)
-    c = 110
-    corner[:c, :c] = corner[:c, w - c:] = corner[h - c:, :c] = corner[h - c:, w - c:] = True
-    fill = white & corner
-    noise = rng.integers(-4, 5, size=(int(fill.sum()), 3))
-    a[fill] = np.clip(cream + noise, 0, 255)
-    im2 = Image.fromarray(a.astype(np.uint8))
-    return im2, (l - x0, t - y0, r - x0, b - y0)
+    w, h = size
+    noise = rng.normal(0, 2.2, size=(h, w, 1))
+    img = np.clip(cream + noise, 0, 255).astype(np.uint8)
+    return Image.fromarray(img)
 
 
 def save_webp(im, dest):
@@ -79,16 +92,22 @@ def save_webp(im, dest):
 
 def main():
     OUT.mkdir(exist_ok=True)
-    scans = [Image.open(CACHE / f).convert("RGB") for f in FILES]
-    boxes = [frame_box(im) for im in scans]
+    scans, boxes = [], []
+    for f in FILES:
+        im, ang = deskew(Image.open(CACHE / f).convert("RGB"))
+        scans.append(im)
+        boxes.append(frame_box(im))
+        if abs(ang) >= 0.03:
+            print(f"  傾き補正: {f} {ang:+.2f}°")
 
-    # 代表の白枠: 外側の真っ白な帯を切り落とし、四隅の白をクリーム色で埋める
-    tpl, (l, t, r, b) = clean_template(scans[TEMPLATE], boxes[TEMPLATE])
-    s = WIDTH / tpl.width
-    template = tpl.resize((WIDTH, round(tpl.height * s)), Image.LANCZOS)
-    box = (round(l * s), round(t * s), round((r + 1) * s), round((b + 1) * s))
-    bw, bh = box[2] - box[0], box[3] - box[1]
-    print(f"白枠: {template.size}, 絵の枠: {box} ({bw}x{bh})")
+    # 絵の枠の大きさは代表の縦横比から決め、縁は新しく作る
+    l, t, r, b = boxes[TEMPLATE]
+    bw = WIDTH - 2 * MARGIN_PX
+    bh = round(bw * (b - t + 1) / (r - l + 1))
+    size = (WIDTH, bh + 2 * MARGIN_PX)
+    template = make_border(scans[TEMPLATE], boxes[TEMPLATE], size)
+    box = (MARGIN_PX, MARGIN_PX)
+    print(f"出力: {size}, 絵の枠: {bw}x{bh}, 縁 {MARGIN_PX}px")
 
     thumbs, total = [], 0
     for i, (im, (l, t, r, b)) in enumerate(zip(scans, boxes)):
@@ -98,11 +117,11 @@ def main():
             print(f"  注意: {FILES[i]} の枠の縦横比が代表と {ratio:.3f} 倍ずれている")
         art = art.resize((bw, bh), Image.LANCZOS)
         card = template.copy()
-        card.paste(art, (box[0], box[1]))
-        q, size = save_webp(card, OUT / f"{i:02d}.webp")
-        total += size
+        card.paste(art, box)
+        q, size_ = save_webp(card, OUT / f"{i:02d}.webp")
+        total += size_
         thumbs.append(card.resize((120, round(card.height * 120 / card.width))))
-        print(f"{i:02d}.webp  {FILES[i]:32s} crop=({l},{t},{r},{b}) q={q} {size // 1024}KB")
+        print(f"{i:02d}.webp  {FILES[i]:32s} crop=({l},{t},{r},{b}) q={q} {size_ // 1024}KB")
 
     # 確認用の一覧画像
     cols, tw, th = 13, 120, thumbs[0].height
