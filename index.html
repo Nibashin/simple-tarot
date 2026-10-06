@@ -57,7 +57,7 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .msg{min-height:3.2em;font-size:17px;max-width:22em;letter-spacing:.04em}
 .sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em}
 .sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
-.done .msg,.done .sub{display:none}
+.done .msg,.done .sub,.reveal .msg,.reveal .sub{display:none}
 .result{display:none;max-width:30em;width:100%}
 .done .result{display:block}
 .reading{display:flex;gap:16px;align-items:center;text-align:left;background:rgba(255,255,255,.055);border-radius:16px;padding:14px 16px;margin-top:12px}
@@ -256,7 +256,7 @@ function concat(...parts){const n=parts.reduce((s,p)=>s+p.length,0),o=new Uint8A
 
 // ---- 結果 ----
 async function finish(material){
-  setState("done");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
+  setState("reveal");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
   const used=new Set(drawn.map(d=>d.n));
   const rest=[];for(let i=0;i<78;i++)if(!used.has(i))rest.push(i);
   const {k,rev}=await pick(material,rest.length);
@@ -264,17 +264,21 @@ async function finish(material){
   drawn.push({n,rev});
   s.card.classList.toggle("rev",rev);s.card.classList.remove("pulse","pending");s.card.style.cssText="";s.el.querySelector(".scene").classList.add("set");
   s.art.alt=c[0];s.art.onload=()=>s.art.classList.add("on");s.art.src="cards/"+String(n).padStart(2,"0")+".webp";
-  s.cname.textContent=c[0]+(rev?" (逆)":"");
   const item=document.createElement("article");item.className="reading";
   item.innerHTML='<img alt="" class="'+(rev?"rev":"")+'"><div class="t"><div class="p">'+(drawn.length>1||spread.children.length>1?(drawn.length+". "+POS[drawn.length-1]):"")+'</div><h2></h2>'+
     '<span class="badge'+(rev?" r":"")+'">'+(rev?"逆位置":"正位置")+'</span><div class="en"></div><p></p></div>';
   item.querySelector("img").src=s.art.src;
   item.querySelector("h2").textContent=c[0];item.querySelector(".en").textContent=c[1];item.querySelector("p").textContent=rev?c[3]:c[2];
-  $("readings").appendChild(item);
+
   if(drawn.length>1)$("readings").firstChild.querySelector(".p").textContent="1. "+POS[0];
   $("more").style.display=drawn.length<MAX?"":"none";
   $("hint").textContent=drawn.length===1?"もう1枚引くと「状況・課題・助言」の3枚引きになります。":drawn.length===2?"あと1枚で「助言」が出ます。":"";
   setTimeout(()=>{s.card.classList.add("flipped");},900);
+  setTimeout(()=>{   // めくり終わってから名前・説明を出す
+    s.cname.textContent=c[0]+(rev?" (逆)":"");
+    $("readings").appendChild(item);
+    setState("done");
+  },2300);
 }
 
 // ---- 息で引く ----
@@ -293,7 +297,7 @@ async function startListen(){
   const src=ac.createMediaStreamSource(stream),an=ac.createAnalyser();
   an.fftSize=2048;src.connect(an);
   const buf=new Uint8Array(an.fftSize),chunks=[];
-  let t0=performance.now(),ambient=0,amb=0,th=0.02,above=0,below=0,blowing=false,tStart=0,frame=0,lastHint=0;
+  let t0=performance.now(),ambient=0,amb=0,th=0.012,above=0,below=0,blowing=false,tStart=0,frame=0,lastHint=0;
   setMsg("マイクに、ふーっと息を吹きかける","");meter.style.visibility="visible";
   const tick=()=>{
     if(state!=="listen")return;
@@ -301,10 +305,10 @@ async function startListen(){
     an.getByteTimeDomainData(buf);
     let s=0;for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;s+=v*v;}
     const rms=Math.sqrt(s/buf.length);
-    if(now-t0<400){ambient+=rms;amb++;th=Math.min(0.08,Math.max(0.015,(ambient/amb)*2));raf=requestAnimationFrame(tick);return;}
+    if(now-t0<400){ambient+=rms;amb++;th=Math.min(0.05,Math.max(0.008,(ambient/amb)*1.6));raf=requestAnimationFrame(tick);return;}
     const k=Math.min(1,rms/(th*4));level.style.width=(k*100).toFixed(0)+"%";
     if(rms>th){above+=16;below=0;}else{below+=16;above=0;}
-    if(!blowing&&above>=300){blowing=true;tStart=now;body.classList.add("blowing");setMsg("そのまま…","カードが混ざっています");}
+    if(!blowing&&above>=250){blowing=true;tStart=now;body.classList.add("blowing");setMsg("そのまま…","カードが混ざっています");}
     if(blowing){
       if(chunks.length<120)chunks.push(buf.slice());
       slot.card.style.setProperty("--tilt",((Math.random()-.5)*k*10).toFixed(2)+"deg");
