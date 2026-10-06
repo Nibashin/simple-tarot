@@ -9,15 +9,16 @@
 <style>
 :root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--cw:min(68vw,300px,27svh)}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:radial-gradient(ellipse at 50% 30%,#232a5e 0%,var(--bg) 60%);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+html{height:100%;background:var(--bg);overflow-x:hidden}
+body{background:radial-gradient(ellipse 90% 420px at 50% 180px,#232a5e,var(--bg) 100%) no-repeat,var(--bg);overflow-x:hidden;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;height:auto;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bottom:28px}
 .spread{display:flex;gap:12px;justify-content:center;align-items:flex-start;margin-bottom:24px}
 .spread[data-n="2"]{--cw:min(40vw,220px,24svh)}
 .spread[data-n="3"]{--cw:min(28vw,170px,20svh)}
 .slot{width:var(--cw);transition:width .5s}
 .scene{perspective:1200px;width:100%;aspect-ratio:400/665;position:relative}
-.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.45);background:#1a1e4a;transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
+.scene.set{z-index:2}
+.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.5);background:transparent;transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
 .ghost.l{animation:swayL 5s ease-in-out infinite}
 .ghost.r{animation:swayR 5.6s ease-in-out infinite}
 .ghost.l2{animation:swayL 7s ease-in-out infinite reverse;opacity:.5}
@@ -73,7 +74,7 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .btns button{background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 26px;font:inherit;font-size:15px;cursor:pointer}
 .btns button.ghostbtn{background:transparent;color:var(--gold);border:1px solid var(--gold)}
 .hint{font-size:12px;color:var(--dim);margin-top:10px}
-footer{margin-top:40px;font-size:10px;color:#6b6a85;max-width:28em}
+footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
 footer a{color:inherit}
 @media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .card.pending,.back::after,.fig .air{animation:none}}
 </style>
@@ -99,7 +100,7 @@ footer a{color:inherit}
   <div class="btns"><button id="more" type="button">もう1枚引く</button><button id="again" type="button" class="ghostbtn">最初から</button></div>
   <p class="hint" id="hint"></p>
 </section>
-<footer>音は端末の中だけで使い、保存も送信もしません。<br>画像: Pamela Colman Smith, 1909 (パブリックドメイン, <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck" target="_blank" rel="noopener">Wikimedia Commons</a>) / 意味: A. E. Waite, The Pictorial Key to the Tarot, 1911 を要約・訳出。占いは楽しむためのものです。</footer>
+<footer>音は端末の中だけで使い、保存も送信もしません。<br>絵: Pamela Colman Smith (1909) / 意味: A. E. Waite (1911)</footer>
 <script>
 const C=[
 ["愚者","The Fool","考えるより先に飛び出す時。無邪気さと勢いが、思いがけない方向へ連れていく。","軽はずみ、うっかり、気の抜けた状態。足元を見ずに進んでいないか確かめて。"],
