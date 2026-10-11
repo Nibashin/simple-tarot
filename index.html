@@ -97,7 +97,11 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .chip.on{background:var(--gold);border-color:var(--gold);color:#1a1630;font-weight:600}
 .sheet input{width:100%;margin-top:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:15px;padding:9px 12px;user-select:text;-webkit-user-select:text}
 .sheet input::placeholder{color:#6f6d8c}
-.sheet .btns{justify-content:flex-start;margin-top:4px}
+.acts{margin-top:6px}
+.acts .main{width:100%;background:var(--gold);color:#1a1630;border:0;border-radius:26px;padding:14px;font:inherit;font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(200,164,76,.25)}
+.subacts{display:flex;gap:10px;margin-top:10px}
+.subacts button{flex:1;background:transparent;color:var(--gold);border:1px solid rgba(200,164,76,.6);border-radius:22px;padding:9px;font:inherit;font-size:14px;cursor:pointer}
+.lbl small.multi{color:var(--gold);opacity:1}
 .topai{flex-direction:column;align-items:center;gap:8px;margin:-6px 0 22px}
 .topai button{padding:13px 28px;font-size:16px;box-shadow:0 8px 24px rgba(200,164,76,.25)}
 .topai .mini{font-size:11px;color:var(--dim)}
@@ -144,10 +148,10 @@ footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
 <section class="sheet hidden" id="sheet" role="dialog" aria-label="占いの設定">
   <button class="close" id="close" type="button" aria-label="閉じる">×</button>
   <h3>この3枚で占ってもらう</h3>
-  <div class="grp"><div class="lbl">テーマ</div><div class="chips" id="theme"></div><input id="q" type="text" maxlength="80" class="hidden" placeholder="占いたいことを書く 例: 今の仕事を続けるべき?"></div>
+  <div class="grp"><div class="lbl">テーマ <small class="multi">複数選べます</small></div><div class="chips" id="theme"></div><input id="q" type="text" maxlength="80" class="hidden" placeholder="占いたいことを書く 例: 今の仕事を続けるべき?"></div>
   <div class="grp"><div class="lbl">性別 <small>任意。言葉づかいが合いやすくなります</small></div><div class="chips" id="sex"></div></div>
   <div class="grp"><div class="lbl">年代 <small>任意</small></div><div class="chips" id="age"></div></div>
-  <div class="btns"><button id="gpt" type="button">ChatGPT で占う</button><button id="share" type="button" class="ghostbtn">共有</button><button id="claude" type="button" class="ghostbtn">Claude</button><button id="copy" type="button" class="ghostbtn">コピー</button></div>
+  <div class="acts"><button id="gpt" type="button" class="main">ChatGPT で占う</button><div class="subacts"><button id="gemini" type="button" class="ghostbtn">Gemini で占う</button><button id="copy" type="button" class="ghostbtn">プロンプトをコピー</button></div></div>
   <p class="note" id="note2"></p>
 </section>
 <footer>音は端末の中だけで使い、保存も送信もしません。<br>絵: Pamela Colman Smith (1909) / 意味: A. E. Waite (1911)</footer>
@@ -337,14 +341,19 @@ function reveal(d,i){
 // ---- 設定シート(テーマ・性別・年代) ----
 const THEMES=[["恋愛","恋愛や相手との関係の流れとして読んでください。"],["仕事","仕事や進路の判断として読んでください。"],["お金","お金の使い方や優先順位として読んでください。"],["人間関係","家族や友人、周囲との関わりとして読んでください。"],["健康","体調や生活リズム、心の調子として読んでください。生活の助言にとどめ、医療の判断は医師に任せるよう添えてください。"],["自分のこと","いまの自分の状態と、これからの向き合い方として読んでください。"],["特になし",""],["自分で書く",""]];
 const SEXES=["女性","男性","その他","答えない"],AGES=["10代","20代","30代","40代","50代","60代以上","答えない"];
-const sel={theme:"特になし",sex:"答えない",age:"答えない"};
+const sel={theme:["特になし"],sex:"答えない",age:"答えない"};
 try{const m=JSON.parse(localStorage.getItem("tarot-me")||"{}");if(m.sex)sel.sex=m.sex;if(m.age)sel.age=m.age;}catch(e){}
 function chips(id,list,key){
   const box=$(id);box.innerHTML="";
-  list.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="chip"+(sel[key]===v?" on":"");b.textContent=v;
-    b.addEventListener("click",()=>{sel[key]=v;[...box.children].forEach(c=>c.classList.toggle("on",c===b));
-      if(key==="theme"){$("q").classList.toggle("hidden",v!=="自分で書く");if(v==="自分で書く")$("q").focus();}
-      else{try{localStorage.setItem("tarot-me",JSON.stringify({sex:sel.sex,age:sel.age}));}catch(e){}}
+  const on=v=>key==="theme"?sel.theme.includes(v):sel[key]===v;
+  list.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="chip"+(on(v)?" on":"");b.textContent=v;
+    b.addEventListener("click",()=>{
+      if(key==="theme"){
+        if(v==="特になし")sel.theme=["特になし"];
+        else{sel.theme=sel.theme.filter(t=>t!=="特になし");sel.theme=sel.theme.includes(v)?sel.theme.filter(t=>t!==v):[...sel.theme,v];if(!sel.theme.length)sel.theme=["特になし"];}
+        $("q").classList.toggle("hidden",!sel.theme.includes("自分で書く"));if(v==="自分で書く"&&sel.theme.includes(v))$("q").focus();
+      }else{sel[key]=v;try{localStorage.setItem("tarot-me",JSON.stringify({sex:sel.sex,age:sel.age}));}catch(e){}}
+      [...box.children].forEach(c=>c.classList.toggle("on",on(c.textContent)));
       buildPrompt();});
     box.appendChild(b);});
 }
@@ -356,16 +365,16 @@ $("close").addEventListener("click",closeSheet);$("shade").addEventListener("cli
 
 // ---- AI 用プロンプト ----
 function buildPrompt(){
-  const q=$("q").value.trim(),th=THEMES.find(t=>t[0]===sel.theme)||THEMES[6];
+  const q=$("q").value.trim();
   const who=[sel.age!=="答えない"?sel.age:"",sel.sex!=="答えない"?sel.sex:""].filter(Boolean).join("の");
-  let topic;
-  if(sel.theme==="自分で書く")topic=q||"特に決めていません。今の自分へのメッセージとして読んでください。";
-  else if(sel.theme==="特になし")topic="特に決めていません。今の自分へのメッセージとして読んでください。";
-  else topic=sel.theme+"について。"+th[1];
+  const picked=sel.theme.filter(t=>t!=="特になし"&&t!=="自分で書く");
+  const parts=picked.map(t=>t+"について。"+(THEMES.find(x=>x[0]===t)||["",""])[1]);
+  if(sel.theme.includes("自分で書く")&&q)parts.push(q);
+  const topic=parts.length?parts.join("\n"):"特に決めていません。今の自分へのメッセージとして読んでください。";
   const lines=drawn.map((d,i)=>{const c=C[d.n];return (i+1)+". "+POS[i]+": "+c[0]+"("+c[1]+")"+(d.rev?" 逆位置":" 正位置")+" — "+(d.rev?c[3]:c[2]);});
   $("prompt").value=
 "タロット占いをお願いします。ウェイト=スミス版で3枚引き(状況・課題・助言)をしました。\n\n"+
-(who?"相談者: "+who+"\n":"")+"占いたいこと: "+topic+"\n\n"+
+(who?"相談者: "+who+"\n":"")+"占いたいこと:\n"+topic+"\n\n"+
 lines.join("\n")+"\n\n"+
 "それぞれのカードの意味と、3枚のつながりを踏まえて、やさしい言葉で300字くらいにまとめてください。最後に、今日できる小さな一歩をひとつ提案してください。";
   return $("prompt").value;
@@ -375,15 +384,10 @@ async function copyPrompt(){
   const t=$("prompt").value;
   try{await navigator.clipboard.writeText(t);}catch(e){$("prompt").select();document.execCommand("copy");}
 }
-$("share").addEventListener("click",async()=>{
-  const t=buildPrompt();
-  if(navigator.share){try{await navigator.share({text:t});}catch(e){}}
-  else{await copyPrompt();$("note2").textContent="コピーしました。ChatGPT や Gemini に貼り付けてください。";}
-});
 const openGPT=()=>{window.open("https://chatgpt.com/?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");};
 $("gpt").addEventListener("click",openGPT);
-$("claude").addEventListener("click",()=>{window.open("https://claude.ai/new?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");});
-$("copy").addEventListener("click",async()=>{buildPrompt();await copyPrompt();$("note2").textContent="コピーしました。";});
+$("gemini").addEventListener("click",async()=>{buildPrompt();await copyPrompt();$("note2").textContent="プロンプトをコピーしました。Gemini に貼り付けて送信してください。";window.open("https://gemini.google.com/app","_blank","noopener");});
+$("copy").addEventListener("click",async()=>{buildPrompt();await copyPrompt();$("note2").textContent="コピーしました。好きな AI に貼り付けてください。";});
 $("again").addEventListener("click",idle);
 
 // ---- 息で引く ----
