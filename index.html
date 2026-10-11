@@ -3,127 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="SPIRA — 息を吹きかけると、タロットカードが3枚決まります。">
-<meta name="theme-color" content="#0d1020">
-<title>SPIRA — ひと息で引くタロット</title>
+<meta name="description" content="息を吹きかけると、タロットカードが3枚決まります。">
+<meta name="theme-color" content="#141838">
+<title>タロットカード</title>
 <style>
-:root{--bg:#0d1020;--bg2:#141a33;--panel:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);--ink:#efe9da;--dim:#8f91ad;--gold:#d8bd7a;--gold2:#b8955a;--cw:min(66vw,290px,27svh);--sw:min(28vw,170px,20svh);--serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+:root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--cw:min(68vw,300px,27svh);--sw:min(28vw,170px,20svh)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;background:var(--bg);overflow-x:clip}
-body{position:relative;background:var(--bg);overflow-x:clip;color:var(--ink);font-family:var(--sans);line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;height:auto;padding:28px 18px calc(28px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
-/* 背景: 柔らかい光とごく薄い粒子 */
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.bg i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
-.bg .a{width:70vw;height:70vw;max-width:520px;max-height:520px;left:-15vw;top:-10vh;background:#26306a}
-.bg .b{width:60vw;height:60vw;max-width:460px;max-height:460px;right:-20vw;top:30vh;background:#3a2a5e;opacity:.4}
-.bg .c{width:50vw;height:50vw;max-width:380px;max-height:380px;left:20vw;bottom:-15vh;background:#1b3a5a;opacity:.35}
-.bg::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.35) .6px,transparent .7px),radial-gradient(rgba(255,255,255,.22) .5px,transparent .6px);background-size:160px 160px,97px 97px;background-position:0 0,40px 70px;opacity:.5}
-body>*:not(.bg){position:relative;z-index:1}
-.hidden{display:none!important}
-/* 見出し */
+body{background:radial-gradient(ellipse 90% 420px at 50% 180px,#232a5e,var(--bg) 100%) no-repeat,var(--bg);overflow-x:clip;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 header{margin-bottom:26px}
-h1{font-family:var(--serif);font-weight:400;font-size:34px;letter-spacing:.42em;margin-left:.42em;color:var(--ink);line-height:1}
-.tag{font-size:11px;letter-spacing:.3em;margin-left:.3em;color:var(--dim);margin-top:10px}
-/* 山札 */
-.deck{width:var(--cw);margin:6px auto 30px;position:relative}
-.deck::before{content:"";position:absolute;left:50%;top:50%;width:150%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(216,189,122,.12);pointer-events:none}
-.deck::after{content:"";position:absolute;left:50%;top:50%;width:190%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(216,189,122,.06);pointer-events:none}
-.halo{position:absolute;left:50%;top:60%;width:120%;height:60%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(216,189,122,.22),transparent 65%);filter:blur(18px);pointer-events:none;transition:opacity .6s}
+h1{font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",Georgia,serif;font-weight:400;font-size:26px;letter-spacing:.3em;margin-left:.3em;color:var(--ink);line-height:1.2}
+.tag{font-size:11px;letter-spacing:.25em;margin-left:.25em;color:var(--dim);margin-top:8px}
+.hidden{display:none!important}
+/* 山札(最初の1枚) */
+.deck{width:var(--cw);margin:0 auto 24px}
 .scene{perspective:1200px;width:100%;aspect-ratio:400/665;position:relative;transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.5);transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
+.ghost.l{animation:swayL 5s ease-in-out infinite}
+.ghost.r{animation:swayR 5.6s ease-in-out infinite}
+.ghost.l2{animation:swayL 7s ease-in-out infinite reverse;opacity:.5}
+.ghost.r2{animation:swayR 7.4s ease-in-out infinite reverse;opacity:.5}
+.blowing .ghost{animation-duration:.7s!important}
+@keyframes swayL{0%,100%{transform:rotate(-7deg) translateX(-6%)}50%{transform:rotate(-13deg) translateX(-12%)}}
+@keyframes swayR{0%,100%{transform:rotate(7deg) translateX(6%)}50%{transform:rotate(13deg) translateX(12%)}}
 .card{position:relative;z-index:1;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1.3s cubic-bezier(.4,0,.15,1);cursor:pointer;touch-action:none;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
 .idle .deck .card{animation:floaty 5s ease-in-out infinite}
 @keyframes floaty{0%,100%{translate:0 0;rotate:-1.2deg}50%{translate:0 -8px;rotate:1.2deg}}
 .card.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6),0 2px 0 rgba(255,255,255,.06) inset}
-.back{background:linear-gradient(160deg,#1a2048,#0f1330 55%,#141a3c)}
-.back svg{position:absolute;inset:0;width:100%;height:100%}
-.back img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
-.deck .back::after{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 35%,rgba(239,233,218,.14),transparent 45%),radial-gradient(circle at 70% 70%,rgba(216,189,122,.12),transparent 40%);animation:mist 10s ease-in-out infinite;pointer-events:none}
-@keyframes mist{0%,100%{transform:translate(0,0) rotate(0)}33%{transform:translate(8%,-6%) rotate(10deg)}66%{transform:translate(-7%,5%) rotate(-8deg)}}
-.tick{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(13,16,32,.78);color:var(--gold);font-family:var(--serif);font-size:calc(var(--cw) * .09);letter-spacing:.12em;padding:0 8%;line-height:1.3}
+.face{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.back{background:#1c2050 repeating-linear-gradient(45deg,#1c2050 0 10px,#232862 10px 12px);border:3px solid var(--gold);outline:1px solid var(--gold);outline-offset:-10px}
+.back img{width:100%;height:100%;display:block;object-fit:cover}
+.deck .back::after{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 40%,rgba(236,230,214,.22),transparent 45%),radial-gradient(circle at 70% 65%,rgba(200,164,76,.18),transparent 40%);animation:mist 9s ease-in-out infinite;pointer-events:none}
+.tick{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(20,24,56,.72);color:var(--gold);font-size:calc(var(--cw) * .085);letter-spacing:.1em;padding:0 8%;line-height:1.3}
 .blowing .tick{display:flex}
 .blowing .deck .back::after{display:none}
 .front{background:#f4edd8;transform:rotateY(180deg)}
 .front img{width:100%;height:100%;display:block;object-fit:cover;opacity:0;transition:opacity .4s}
 .front img.on{opacity:1}
 .rev .front img{transform:rotate(180deg)}
-.pulse .face{animation:pulse 3s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 0 rgba(216,189,122,0)}50%{box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 8px rgba(216,189,122,.10)}}
-/* 3枚 */
-.spread{display:flex;gap:14px;justify-content:center;align-items:flex-start;margin-bottom:26px}
-.slot{width:var(--sw);position:relative;animation:deal .7s cubic-bezier(.2,.8,.2,1) both}
+.pulse{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 12px 40px rgba(0,0,0,.55)}50%{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 6px rgba(200,164,76,.18)}}
+@keyframes mist{0%,100%{transform:translate(0,0) rotate(0)}33%{transform:translate(8%,-6%) rotate(10deg)}66%{transform:translate(-7%,5%) rotate(-8deg)}}
+/* 3枚の並び */
+.spread{display:flex;gap:12px;justify-content:center;align-items:flex-start;margin-bottom:24px}
+.slot{width:var(--sw);position:relative}
+.slot{animation:deal .7s cubic-bezier(.2,.8,.2,1) both}
 @keyframes deal{from{opacity:0;translate:0 -40px;scale:.6}to{opacity:1;translate:0 0;scale:1}}
 .slot.zoom{z-index:5}
 .slot.zoom .scene{transform:scale(1.7) translateX(var(--zx,0))}
-.slot .card.todo .face{animation:pulse 3s ease-in-out infinite}
-.pos{font-family:var(--serif);font-size:11px;color:var(--dim);margin-top:10px;letter-spacing:.25em;min-height:1.2em}
-.cname{font-size:12px;margin-top:2px;min-height:1.2em;color:var(--ink)}
+.slot .card.todo .face{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 2px rgba(200,164,76,.35)}
+.slot .card.todo{animation:pulse 2.2s ease-in-out infinite}
+.pos{font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.1em;min-height:1.2em}
+.cname{font-size:12px;margin-top:2px;min-height:1.2em}
 /* 案内 */
-.fig{display:none;margin:0 auto 10px;width:190px;height:auto}
+.fig{display:none;margin:0 auto 10px;width:200px;height:auto}
 .listen .fig{display:block}
 .fig .air{stroke-dasharray:6 6;animation:air 1.2s linear infinite}
 @keyframes air{to{stroke-dashoffset:-24}}
-.meter{width:var(--cw);max-width:290px;height:2px;background:rgba(255,255,255,.08);border-radius:2px;margin:0 auto 16px;overflow:hidden;visibility:hidden}
+.meter{width:var(--cw);max-width:300px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:0 auto 14px;overflow:hidden;visibility:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--gold);transition:width .08s}
-.msg{min-height:2.6em;font-family:var(--serif);font-size:20px;letter-spacing:.08em;max-width:20em;line-height:1.5}
-.sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em;letter-spacing:.04em}
-.sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:none;border-bottom:1px solid rgba(216,189,122,.5);cursor:pointer;padding:0}
-.done .msg{display:none}
-/* ボタン */
-.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.btns button,.acts .main{background:linear-gradient(180deg,#e2c98a,#c9a860);color:#1a1630;border:0;border-radius:28px;padding:12px 26px;font:inherit;font-size:15px;font-weight:600;letter-spacing:.04em;cursor:pointer;box-shadow:0 10px 30px rgba(216,189,122,.18);transition:transform .15s,box-shadow .15s}
-.btns button:active,.acts .main:active{transform:scale(.97)}
-.btns button.ghostbtn,.subacts button{background:transparent;color:var(--gold);border:1px solid rgba(216,189,122,.45);box-shadow:none;font-weight:500}
-.topai{flex-direction:column;align-items:center;gap:8px;margin:-4px 0 26px}
-.topai button{padding:14px 30px;font-size:16px}
+.msg{min-height:3.2em;font-size:17px;max-width:22em;letter-spacing:.04em}
+.sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em}
+.sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 /* 結果 */
 .result{max-width:30em;width:100%}
-.reading{display:flex;gap:16px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-top:12px;animation:fade .6s both;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.reading{display:flex;gap:16px;align-items:center;text-align:left;background:rgba(255,255,255,.055);border-radius:16px;padding:14px 16px;margin-top:12px;animation:fade .6s both}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}}
-.reading img{width:62px;flex:none;border-radius:5px;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.reading img{width:64px;flex:none;border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .reading img.rev{transform:rotate(180deg)}
 .reading .t{min-width:0}
-.reading .p{font-family:var(--serif);font-size:11px;color:var(--dim);letter-spacing:.25em}
-.reading h2{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:.08em;display:inline;margin-right:8px}
-.reading .en{font-size:10px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase}
-.badge{display:inline-block;font-size:11px;padding:0 9px;border:1px solid rgba(216,189,122,.6);border-radius:12px;color:var(--gold);vertical-align:3px}
-.badge.r{border-color:rgba(214,122,122,.6);color:#e0a0a0}
-.reading p{font-size:14px;margin-top:6px;line-height:1.6;color:#dcd6c8}
-.ai{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;animation:fade .6s both}
+.reading .p{font-size:11px;color:var(--dim);letter-spacing:.1em}
+.reading h2{font-size:19px;font-weight:600;letter-spacing:.05em;display:inline;margin-right:8px}
+.reading .en{font-size:11px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
+.badge{display:inline-block;font-size:11px;padding:0 9px;border:1px solid var(--gold);border-radius:12px;color:var(--gold);vertical-align:3px}
+.badge.r{border-color:#c47a7a;color:#e0a0a0}
+.reading p{font-size:14px;margin-top:6px;line-height:1.55}
+.ai{margin-top:22px;background:rgba(255,255,255,.055);border-radius:16px;padding:16px;animation:fade .6s both}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btns button{background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 22px;font:inherit;font-size:15px;cursor:pointer}
+.btns button.ghostbtn{background:transparent;color:var(--gold);border:1px solid var(--gold)}
 .ai details{margin-top:12px;font-size:12px;color:var(--dim)}
 .ai summary{cursor:pointer}
-.ai textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
+.ai textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
 .again{margin-top:22px}
-.note{font-size:12px;color:var(--dim);margin-top:10px;min-height:1.2em}
-/* シート */
-.shade{position:fixed;inset:0;background:rgba(5,6,16,.6);z-index:20;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:#161b36;border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;box-shadow:0 -10px 50px rgba(0,0,0,.6);animation:up .35s cubic-bezier(.2,.8,.2,1);text-align:left;max-height:88svh;overflow-y:auto}
+.shade{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:#1b2050;border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;box-shadow:0 -10px 40px rgba(0,0,0,.5);animation:up .35s cubic-bezier(.2,.8,.2,1);text-align:left;max-height:88svh;overflow-y:auto}
 @keyframes up{from{transform:translateY(100%)}}
-.sheet h3{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:.1em;margin-bottom:14px}
+.sheet h3{font-size:16px;font-weight:600;margin-bottom:12px}
 .sheet .close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);font-size:24px;cursor:pointer;line-height:1;padding:4px 8px}
 .grp{margin-bottom:14px}
-.lbl{font-size:11px;color:var(--dim);margin-bottom:7px;letter-spacing:.15em}
-.lbl small{font-size:10px;margin-left:6px;opacity:.8;letter-spacing:0}
-.lbl small.multi{color:var(--gold);opacity:1}
+.lbl{font-size:12px;color:var(--dim);margin-bottom:6px;letter-spacing:.05em}
+.lbl small{font-size:10px;margin-left:6px;opacity:.8}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);border-radius:18px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer;transition:background .15s}
+.chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--ink);border-radius:18px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
 .chip.on{background:var(--gold);border-color:var(--gold);color:#1a1630;font-weight:600}
-.sheet input{width:100%;margin-top:10px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:15px;padding:10px 12px;user-select:text;-webkit-user-select:text}
+.sheet input{width:100%;margin-top:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:15px;padding:9px 12px;user-select:text;-webkit-user-select:text}
 .sheet input::placeholder{color:#6f6d8c}
-.acts{margin-top:8px}
-.acts .main{width:100%;padding:15px;font-size:17px;border-radius:30px}
+.acts{margin-top:6px}
+.acts .main{width:100%;background:var(--gold);color:#1a1630;border:0;border-radius:26px;padding:14px;font:inherit;font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(200,164,76,.25)}
 .subacts{display:flex;gap:10px;margin-top:10px}
-.subacts button{flex:1;border-radius:22px;padding:10px;font:inherit;font-size:14px;cursor:pointer}
-footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spacing:.04em}
-@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse .face,.slot .card.todo .face,.idle .deck .card,.deck .back::after,.fig .air,.slot{animation:none}}
+.subacts button{flex:1;background:transparent;color:var(--gold);border:1px solid rgba(200,164,76,.6);border-radius:22px;padding:9px;font:inherit;font-size:14px;cursor:pointer}
+.lbl small.multi{color:var(--gold);opacity:1}
+.topai{flex-direction:column;align-items:center;gap:8px;margin:-6px 0 22px}
+.topai button{padding:13px 28px;font-size:16px;box-shadow:0 8px 24px rgba(200,164,76,.25)}
+.topai .mini{font-size:11px;color:var(--dim)}
+.done .msg{display:none}
+.note{font-size:12px;color:var(--dim);margin-top:10px;min-height:1.2em}
+footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
+@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .deck .card,.deck .back::after,.fig .air,.slot{animation:none}}
 </style>
 </head>
 <body>
-<div class="bg" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-<header><h1>SPIRA</h1><p class="tag">ひと息で引く、三枚のタロット</p></header>
-<div class="deck" id="deck"><div class="halo"></div><div class="scene">
+<header><h1>タロットカード</h1><p class="tag">ひと息で引く、三枚のタロット</p></header>
+<div class="deck" id="deck"><div class="scene">
+  <div class="ghost l2"></div><div class="ghost r2"></div><div class="ghost l"></div><div class="ghost r"></div>
   <div class="card pulse" id="deckcard" role="button" tabindex="0" aria-label="山札">
-    <div class="face back"><svg viewBox="0 0 400 665" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="14" y="14" width="372" height="637" rx="10" fill="none" stroke="#d8bd7a" stroke-width="1.6"/><rect x="24" y="24" width="352" height="617" rx="7" fill="none" stroke="#d8bd7a" stroke-width=".7" opacity=".7"/><circle cx="200" cy="332" r="92" fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".6"/><circle cx="200" cy="332" r="60" fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".8"/><g stroke="#d8bd7a" stroke-width="1.2" stroke-linecap="round"><path d="M200 292v80M160 332h80M172 304l56 56M228 304l-56 56"/></g><circle cx="200" cy="332" r="5" fill="#d8bd7a"/><g fill="#d8bd7a" opacity=".8"><circle cx="200" cy="70" r="2"/><circle cx="200" cy="595" r="2"/><circle cx="60" cy="332" r="2"/><circle cx="340" cy="332" r="2"/></g><g fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".55"><path d="M40 40h30M40 40v30M360 40h-30M360 40v30M40 625h30M40 625v-30M360 625h-30M360 625v-30"/></g><text x="200" y="640" font-family="Georgia,serif" font-size="11" letter-spacing="6" text-anchor="middle" fill="#d8bd7a" opacity=".7">SPIRA</text></svg><img alt="" src="cards/back.webp" onerror="this.remove()"><div class="tick" id="tick"></div></div>
+    <div class="face back"><img alt="" src="cards/back.webp" onerror="this.remove()"><div class="tick" id="tick"></div></div>
     <div class="face front"></div>
   </div>
 </div></div>
@@ -142,10 +137,10 @@ footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spaci
 <div class="meter" id="meter"><i id="level"></i></div>
 <p class="msg" id="msg"></p>
 <p class="sub" id="sub"></p>
-<div class="btns topai hidden" id="topai"><button id="open1" type="button">この三枚で、AI に占ってもらう</button></div>
+<div class="btns topai hidden" id="topai"><button id="open1" type="button">この3枚で ChatGPT に占ってもらう</button></div>
 <section class="result"><div id="readings"></div>
   <div class="ai hidden" id="ai">
-    <div class="btns"><button id="open2" type="button">この三枚で、AI に占ってもらう</button></div>
+    <div class="btns"><button id="open2" type="button">AI に占ってもらう</button></div>
     <p class="note" id="note"></p>
     <details><summary>送る内容を見る・直す</summary><textarea id="prompt"></textarea></details>
   </div>
@@ -154,14 +149,14 @@ footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spaci
 <div class="shade hidden" id="shade"></div>
 <section class="sheet hidden" id="sheet" role="dialog" aria-label="占いの設定">
   <button class="close" id="close" type="button" aria-label="閉じる">×</button>
-  <h3>この三枚で占う</h3>
+  <h3>この3枚で占ってもらう</h3>
   <div class="grp"><div class="lbl">テーマ <small class="multi">複数選べます</small></div><div class="chips" id="theme"></div><input id="q" type="text" maxlength="80" class="hidden" placeholder="占いたいことを書く 例: 今の仕事を続けるべき?"></div>
   <div class="grp"><div class="lbl">性別 <small>任意。言葉づかいが合いやすくなります</small></div><div class="chips" id="sex"></div></div>
   <div class="grp"><div class="lbl">年代 <small>任意</small></div><div class="chips" id="age"></div></div>
   <div class="acts"><button id="gpt" type="button" class="main">ChatGPT で占う</button><div class="subacts"><button id="gemini" type="button" class="ghostbtn">Gemini で占う</button><button id="copy" type="button" class="ghostbtn">プロンプトをコピー</button></div></div>
   <p class="note" id="note2"></p>
 </section>
-<footer>音は端末の中だけで使い、保存も送信もしません。<br>Art: Pamela Colman Smith, 1909 · Text: A. E. Waite, 1911</footer>
+<footer>音は端末の中だけで使い、保存も送信もしません。<br>絵: Pamela Colman Smith (1909) / 意味: A. E. Waite (1911)</footer>
 <script>
 const C=[
 ["愚者","The Fool","考えるより先に飛び出す時。無邪気さと勢いが、思いがけない方向へ連れていく。","軽はずみ、うっかり、気の抜けた状態。足元を見ずに進んでいないか確かめて。"],
@@ -245,7 +240,6 @@ const C=[
 ];
 // ---- 状態 ----
 const $=id=>document.getElementById(id);
-const BACK=document.querySelector('.deck .back svg').outerHTML;
 const deck=$("deck"),deckcard=$("deckcard"),spread=$("spread"),msg=$("msg"),sub=$("sub"),meter=$("meter"),level=$("level"),body=document.body;
 const POS=["状況","課題","助言"];
 const touch=matchMedia("(pointer: coarse)").matches;
@@ -307,7 +301,7 @@ async function finish(material){
   drawn.forEach((d,i)=>{
     const el=document.createElement("div");el.className="slot";el.style.setProperty("--zx",i===0?"28%":i===2?"-28%":"0");
     el.innerHTML='<div class="scene"><div class="card todo" role="button" tabindex="0" aria-label="'+POS[i]+'のカード(裏向き)">'+
-      '<div class="face back">'+BACK+'<img alt="" src="cards/back.webp" onerror="this.remove()"></div>'+
+      '<div class="face back"><img alt="" src="cards/back.webp" onerror="this.remove()"></div>'+
       '<div class="face front"><img alt=""></div></div></div><div class="pos">'+POS[i]+'</div><div class="cname"></div>';
     el.style.animationDelay=(i*150)+"ms";
     d.slot=el;d.card=el.querySelector(".card");d.art=el.querySelector(".front img");d.shown=false;
@@ -317,7 +311,7 @@ async function finish(material){
     d.card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal(d,i);}});
     spread.appendChild(el);
   });
-  setMsg("一枚ずつ、めくる","順番は自由です。");
+  setMsg("カードをタップしてめくる","状況・課題・助言の順でなくても大丈夫です。");
 }
 function reveal(d,i){
   if(state!=="dealt"||d.shown||busy)return;
@@ -384,7 +378,7 @@ function buildPrompt(){
 "タロット占いをお願いします。ウェイト=スミス版で3枚引き(状況・課題・助言)をしました。\n\n"+
 (who?"相談者: "+who+"\n":"")+"占いたいこと:\n"+topic+"\n\n"+
 lines.join("\n")+"\n\n"+
-"それぞれのカードの意味と、3枚のつながりを踏まえて、やさしい言葉で300字くらいにまとめてください。最後に、今日できる小さな一歩をひとつ提案してください。";
+"それぞれのカードの意味と、3枚のつながりを踏まえて、やさしい言葉で読み解いてください。最後に、今日できる小さな一歩をひとつ提案してください。";
   return $("prompt").value;
 }
 $("q").addEventListener("input",buildPrompt);
