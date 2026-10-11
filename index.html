@@ -87,6 +87,10 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .ai summary{cursor:pointer}
 .ai textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
 .again{margin-top:22px}
+.topai{flex-direction:column;align-items:center;gap:8px;margin:-6px 0 22px}
+.topai button{padding:13px 28px;font-size:16px;box-shadow:0 8px 24px rgba(200,164,76,.25)}
+.topai .mini{font-size:11px;color:var(--dim)}
+.done .msg{display:none}
 .note{font-size:12px;color:var(--dim);margin-top:10px;min-height:1.2em}
 footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
 @media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .deck .card,.deck .back::after,.fig .air,.slot{animation:none}}
@@ -116,6 +120,7 @@ footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
 <div class="meter" id="meter"><i id="level"></i></div>
 <p class="msg" id="msg"></p>
 <p class="sub" id="sub"></p>
+<div class="btns topai hidden" id="topai"><button id="gpt2" type="button">この3枚で ChatGPT に占ってもらう</button><span class="mini">下で「占いたいこと」も添えられます</span></div>
 <section class="result"><div id="readings"></div>
   <div class="ai hidden" id="ai">
     <h3>この3枚で、AIに占ってもらう</h3>
@@ -231,7 +236,7 @@ function idle(){
   stopMic();cancelAnimationFrame(raf);drawn=[];busy=false;
   spread.innerHTML="";spread.classList.add("hidden");deck.classList.remove("hidden");
   deckcard.className="card pulse";deckcard.style.cssText="";
-  $("readings").innerHTML="";$("ai").classList.add("hidden");$("againwrap").classList.add("hidden");$("q").value="";$("note").textContent="";
+  $("readings").innerHTML="";$("ai").classList.add("hidden");$("topai").classList.add("hidden");$("againwrap").classList.add("hidden");$("q").value="";$("note").textContent="";
   meter.style.visibility="hidden";setState("idle");
   if(touch&&secure)setMsg("タップして、息を吹きかける",'息の音でカードが混ざり、3枚が決まります。<br><button class="link" id="finger" type="button">指でまぜて引く</button>');
   else if(touch)setMsg("カードを指でなでて引く",'指の動きでカードが混ざり、3枚が決まります。');
@@ -309,7 +314,7 @@ function reveal(d,i){
     d.slot.classList.remove("zoom");busy=false;
     if(drawn.every(x=>x.shown)){
       setState("done");setMsg("","");
-      $("ai").classList.remove("hidden");$("againwrap").classList.remove("hidden");
+      $("ai").classList.remove("hidden");$("againwrap").classList.remove("hidden");$("topai").classList.remove("hidden");
       buildPrompt();
     }
   },2400);
@@ -336,7 +341,8 @@ $("share").addEventListener("click",async()=>{
   if(navigator.share){try{await navigator.share({text:t});$("note").textContent="";}catch(e){}}
   else{await copyPrompt();$("note").textContent="コピーしました。ChatGPT や Gemini に貼り付けてください。";}
 });
-$("gpt").addEventListener("click",()=>{window.open("https://chatgpt.com/?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");});
+const openGPT=()=>{window.open("https://chatgpt.com/?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");};
+$("gpt").addEventListener("click",openGPT);$("gpt2").addEventListener("click",openGPT);
 $("claude").addEventListener("click",()=>{window.open("https://claude.ai/new?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");});
 $("copy").addEventListener("click",async()=>{buildPrompt();await copyPrompt();$("note").textContent="コピーしました。";});
 $("again").addEventListener("click",idle);
