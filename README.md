@@ -1,4 +1,4 @@
-# シンプルタロット
+# SPIRA — ひと息で引くタロット
 
 息を吹きかけるとタロットカードが1枚引ける、ブラウザで動くアプリです。
 HTMLファイル1つとカード画像だけで動き、フレームワークもビルド工程もサーバー処理もありません。
@@ -9,7 +9,7 @@ HTMLファイル1つとカード画像だけで動き、フレームワークも
 |---|---|
 | `index.html` | アプリ本体(HTML、CSS、JavaScript、78枚分の意味の文章) |
 | `cards/00.webp` 〜 `cards/77.webp` | カード画像。0〜21 が大アルカナ、22〜35 棒、36〜49 杯、50〜63 剣、64〜77 金貨 |
-| `cards/back.webp` | カードの裏面 |
+| `cards/back.webp` | カードの裏面(任意)。無い場合は HTML 内の SVG の裏面を使う |
 | `tools/fetch_cards.py` | Wikimedia Commons から1909年版のスキャンを取得するスクリプト |
 | `tools/normalize_cards.py` | スキャンの黒い内枠を検出して切り抜き、愚者の白枠に当て込んで位置をそろえ、WebP に変換するスクリプト |
 
@@ -30,7 +30,7 @@ python tools/fetch_cards.py
 python tools/normalize_cards.py
 ```
 
-Pillow と NumPy が必要です。`cards/back.webp` が無い場合は仮の裏面を生成するので、自作した裏面画像に差し替えてください。
+Pillow と NumPy が必要です。裏面は HTML 内の SVG で描いています。自作の裏面画像(400×665px)を `cards/back.webp` に置くと、そちらが使われます。
 
 ## 出典
 
