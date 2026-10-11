@@ -30,6 +30,14 @@ h1{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:.3em;m
 .deck::after{content:"";position:absolute;left:50%;top:50%;width:min(190%,96vw);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(216,189,122,.06);pointer-events:none}
 .halo{position:absolute;left:50%;top:60%;width:min(120%,90vw);height:60%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(216,189,122,.22),transparent 65%);filter:blur(18px);pointer-events:none;transition:opacity .6s}
 .scene{perspective:1200px;width:100%;aspect-ratio:400/665;position:relative;transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:1.5px solid rgba(216,189,122,.45);transform-origin:50% 110%;pointer-events:none}
+.ghost.l{animation:swayL 5s ease-in-out infinite}
+.ghost.r{animation:swayR 5.6s ease-in-out infinite}
+.ghost.l2{animation:swayL 7s ease-in-out infinite reverse;opacity:.45}
+.ghost.r2{animation:swayR 7.4s ease-in-out infinite reverse;opacity:.45}
+.blowing .ghost{animation-duration:.7s!important}
+@keyframes swayL{0%,100%{transform:rotate(-5deg) translateX(-4%)}50%{transform:rotate(-10deg) translateX(-9%)}}
+@keyframes swayR{0%,100%{transform:rotate(5deg) translateX(4%)}50%{transform:rotate(10deg) translateX(9%)}}
 .card{position:relative;z-index:1;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1.3s cubic-bezier(.4,0,.15,1);cursor:pointer;touch-action:none;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
 .idle .deck .card{animation:floaty 5s ease-in-out infinite}
 @keyframes floaty{0%,100%{translate:0 0;rotate:-1.2deg}50%{translate:0 -8px;rotate:1.2deg}}
@@ -115,13 +123,14 @@ h1{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:.3em;m
 .subacts{display:flex;gap:10px;margin-top:10px}
 .subacts button{flex:1;border-radius:22px;padding:10px;font:inherit;font-size:14px;cursor:pointer}
 footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spacing:.04em}
-@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse .face,.slot .card.todo .face,.idle .deck .card,.deck .back::after,.fig .air,.slot{animation:none}}
+@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse .face,.slot .card.todo .face,.idle .deck .card,.ghost,.deck .back::after,.fig .air,.slot{animation:none}}
 </style>
 </head>
 <body>
 <div class="bg" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
 <header><h1>タロットカード</h1><p class="tag">ひと息で引く、三枚のタロット</p></header>
 <div class="deck" id="deck"><div class="halo"></div><div class="scene">
+  <div class="ghost l2"></div><div class="ghost r2"></div><div class="ghost l"></div><div class="ghost r"></div>
   <div class="card pulse" id="deckcard" role="button" tabindex="0" aria-label="山札">
     <div class="face back"><svg viewBox="0 0 400 665" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="14" y="14" width="372" height="637" rx="10" fill="none" stroke="#d8bd7a" stroke-width="1.6"/><rect x="24" y="24" width="352" height="617" rx="7" fill="none" stroke="#d8bd7a" stroke-width=".7" opacity=".7"/><circle cx="200" cy="332" r="92" fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".6"/><circle cx="200" cy="332" r="60" fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".8"/><g stroke="#d8bd7a" stroke-width="1.2" stroke-linecap="round"><path d="M200 292v80M160 332h80M172 304l56 56M228 304l-56 56"/></g><circle cx="200" cy="332" r="5" fill="#d8bd7a"/><g fill="#d8bd7a" opacity=".8"><circle cx="200" cy="70" r="2"/><circle cx="200" cy="595" r="2"/><circle cx="60" cy="332" r="2"/><circle cx="340" cy="332" r="2"/></g><g fill="none" stroke="#d8bd7a" stroke-width=".8" opacity=".55"><path d="M40 40h30M40 40v30M360 40h-30M360 40v30M40 625h30M40 625v-30M360 625h-30M360 625v-30"/></g></svg><img alt="" src="cards/back.webp" onerror="this.remove()"><div class="tick" id="tick"></div></div>
     <div class="face front"></div>
