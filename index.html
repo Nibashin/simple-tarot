@@ -63,6 +63,25 @@ h1{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:.3em;m
 @keyframes deal{from{opacity:0;translate:0 -40px;scale:.6}to{opacity:1;translate:0 0;scale:1}}
 .slot.zoom{z-index:5}
 .slot.zoom .scene{transform:scale(1.7) translateX(var(--zx,0))}
+.fx{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:visible}
+.fx .ring{position:absolute;left:50%;top:50%;width:70%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(216,189,122,.9);transform:translate(-50%,-50%) scale(.2);opacity:0}
+.fx .ring2{border-width:1px;border-color:rgba(239,233,218,.8)}
+.fx .flash{position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle,rgba(255,244,214,.95),rgba(216,189,122,.5) 35%,transparent 65%);opacity:0;transform:scale(.4)}
+.fx .spark{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#ffe9b0;box-shadow:0 0 8px 2px rgba(216,189,122,.9);opacity:0;transform:translate(-50%,-50%)}
+.fx .shine{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;opacity:0}
+.fx .shine::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:45%;background:linear-gradient(105deg,transparent 0,rgba(255,255,255,.55) 45%,rgba(255,255,255,.9) 50%,rgba(255,255,255,.55) 55%,transparent 100%);transform:skewX(-15deg)}
+.slot.burst .fx .flash{animation:flash .9s ease-out both}
+.slot.burst .fx .ring{animation:ring 1.1s cubic-bezier(.2,.8,.2,1) both}
+.slot.burst .fx .ring2{animation:ring 1.4s cubic-bezier(.2,.8,.2,1) .15s both}
+.slot.burst .fx .spark{animation:spark 1.1s cubic-bezier(.1,.8,.3,1) both}
+.slot.burst .card .face{box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 40px 6px rgba(216,189,122,.55)}
+.slot.shine .fx .shine{animation:shineon 1.1s ease-out both}
+.slot.shine .fx .shine::before{animation:sweep 1.1s cubic-bezier(.3,.6,.3,1) both}
+@keyframes flash{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+@keyframes ring{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}
+@keyframes spark{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(calc(-50% + var(--sx)),calc(-50% + var(--sy))) scale(.2)}}
+@keyframes shineon{0%,100%{opacity:0}20%,80%{opacity:1}}
+@keyframes sweep{to{left:120%}}
 .slot .card.todo .face{animation:pulse 3s ease-in-out infinite}
 .pos{font-family:var(--serif);font-size:11px;color:var(--dim);margin-top:10px;letter-spacing:.25em;min-height:1.2em}
 .cname{font-size:12px;margin-top:2px;min-height:1.2em;color:var(--ink)}
@@ -97,10 +116,9 @@ h1{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:.3em;m
 .badge{display:inline-block;font-size:11px;padding:0 9px;border:1px solid rgba(216,189,122,.6);border-radius:12px;color:var(--gold);vertical-align:3px}
 .badge.r{border-color:rgba(214,122,122,.6);color:#e0a0a0}
 .reading p{font-size:14px;margin-top:6px;line-height:1.6;color:#dcd6c8}
-.ai{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;animation:fade .6s both}
-.ai details{margin-top:12px;font-size:12px;color:var(--dim)}
-.ai summary{cursor:pointer}
-.ai textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
+.pv{margin-top:12px;font-size:12px;color:var(--dim)}
+.pv summary{cursor:pointer}
+.pv textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
 .again{margin-top:22px}
 .note{font-size:12px;color:var(--dim);margin-top:10px;min-height:1.2em}
 /* シート */
@@ -153,11 +171,6 @@ footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spaci
 <p class="sub" id="sub"></p>
 <div class="btns topai hidden" id="topai"><button id="open1" type="button">この三枚で、AI に占ってもらう</button></div>
 <section class="result"><div id="readings"></div>
-  <div class="ai hidden" id="ai">
-    <div class="btns"><button id="open2" type="button">この三枚で、AI に占ってもらう</button></div>
-    <p class="note" id="note"></p>
-    <details><summary>送る内容を見る・直す</summary><textarea id="prompt"></textarea></details>
-  </div>
   <div class="btns again hidden" id="againwrap"><button id="again" type="button" class="ghostbtn">最初から</button></div>
 </section>
 <div class="shade hidden" id="shade"></div>
@@ -169,6 +182,7 @@ footer{margin-top:44px;font-size:10px;color:#5f6180;line-height:1.9;letter-spaci
   <div class="grp"><div class="lbl">年代 <small>任意</small></div><div class="chips" id="age"></div></div>
   <div class="acts"><button id="gpt" type="button" class="main">ChatGPT で占う</button><div class="subacts"><button id="gemini" type="button" class="ghostbtn">Gemini で占う</button><button id="copy" type="button" class="ghostbtn">プロンプトをコピー</button></div></div>
   <p class="note" id="note2"></p>
+  <details class="pv"><summary>送る内容を見る・直す</summary><textarea id="prompt"></textarea></details>
 </section>
 <footer>音は端末の中だけで使い、保存も送信もしません。<br>Art: Pamela Colman Smith, 1909 · Text: A. E. Waite, 1911</footer>
 <script>
@@ -271,7 +285,7 @@ function idle(){
   stopMic();cancelAnimationFrame(raf);drawn=[];busy=false;
   spread.innerHTML="";spread.classList.add("hidden");deck.classList.remove("hidden");
   deckcard.className="card pulse";deckcard.style.cssText="";
-  $("readings").innerHTML="";$("ai").classList.add("hidden");$("topai").classList.add("hidden");$("againwrap").classList.add("hidden");$("q").value="";$("note").textContent="";$("note2").textContent="";closeSheet();
+  $("readings").innerHTML="";$("topai").classList.add("hidden");$("againwrap").classList.add("hidden");$("q").value="";$("note2").textContent="";closeSheet();
   meter.style.visibility="hidden";setState("idle");
   if(touch&&secure)setMsg("タップして、息を吹きかける",'息の音でカードが混ざり、3枚が決まります。<br><button class="link" id="finger" type="button">指でまぜて引く</button>');
   else if(touch)setMsg("カードを指でなでて引く",'指の動きでカードが混ざり、3枚が決まります。');
@@ -309,6 +323,7 @@ function f64(arr){return new Uint8Array(new Float64Array(arr).buffer);}
 function concat(...parts){const n=parts.reduce((s,p)=>s+p.length,0),o=new Uint8Array(n);let i=0;for(const p of parts){o.set(p,i);i+=p.length;}return o;}
 
 // ---- 3枚を決めて並べる ----
+function sparks(){let h="";for(let k=0;k<14;k++){const a=(k/14)*Math.PI*2+Math.random()*.4,r=70+Math.random()*70;h+='<i class="spark" style="--sx:'+(Math.cos(a)*r).toFixed(0)+'px;--sy:'+(Math.sin(a)*r).toFixed(0)+'px;animation-delay:'+(Math.random()*120).toFixed(0)+'ms"></i>';}return h;}
 async function finish(material){
   setState("dealt");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
   drawn=await pick3(material);
@@ -317,7 +332,7 @@ async function finish(material){
     const el=document.createElement("div");el.className="slot";el.style.setProperty("--zx",i===0?"28%":i===2?"-28%":"0");
     el.innerHTML='<div class="scene"><div class="card todo" role="button" tabindex="0" aria-label="'+POS[i]+'のカード(裏向き)">'+
       '<div class="face back">'+BACK+'<img alt="" src="cards/back.webp" onerror="this.remove()"></div>'+
-      '<div class="face front"><img alt=""></div></div></div><div class="pos">'+POS[i]+'</div><div class="cname"></div>';
+      '<div class="face front"><img alt=""></div></div><div class="fx"><div class="flash"></div><div class="ring"></div><div class="ring ring2"></div><div class="shine"></div>'+sparks()+'</div></div><div class="pos">'+POS[i]+'</div><div class="cname"></div>';
     el.style.animationDelay=(i*150)+"ms";
     d.slot=el;d.card=el.querySelector(".card");d.art=el.querySelector(".front img");d.shown=false;
     d.art.src="cards/"+String(d.n).padStart(2,"0")+".webp";   // 決まった3枚だけ先に読み込む
@@ -334,7 +349,8 @@ function reveal(d,i){
   const c=C[d.n];
   d.card.classList.remove("todo");d.card.classList.toggle("rev",d.rev);
   d.slot.classList.add("zoom");
-  setTimeout(()=>d.card.classList.add("flipped"),450);
+  setTimeout(()=>{d.card.classList.add("flipped");d.slot.classList.add("burst");},450);
+  setTimeout(()=>d.slot.classList.add("shine"),1500);
   setTimeout(()=>{
     d.slot.querySelector(".cname").textContent=c[0]+(d.rev?" (逆)":"");
     const item=document.createElement("article");item.className="reading";
@@ -346,10 +362,10 @@ function reveal(d,i){
     $("readings").insertBefore(item,next||null);
   },1800);
   setTimeout(()=>{
-    d.slot.classList.remove("zoom");busy=false;
+    d.slot.classList.remove("zoom","burst","shine");busy=false;
     if(drawn.every(x=>x.shown)){
       setState("done");setMsg("","");
-      $("ai").classList.remove("hidden");$("againwrap").classList.remove("hidden");$("topai").classList.remove("hidden");
+      $("againwrap").classList.remove("hidden");$("topai").classList.remove("hidden");
       buildPrompt();
     }
   },2400);
@@ -377,7 +393,7 @@ function chips(id,list,key){
 chips("theme",THEMES.map(t=>t[0]),"theme");chips("sex",SEXES,"sex");chips("age",AGES,"age");
 function openSheet(){buildPrompt();$("shade").classList.remove("hidden");$("sheet").classList.remove("hidden");}
 function closeSheet(){$("shade").classList.add("hidden");$("sheet").classList.add("hidden");}
-$("open1").addEventListener("click",openSheet);$("open2").addEventListener("click",openSheet);
+$("open1").addEventListener("click",openSheet);
 $("close").addEventListener("click",closeSheet);$("shade").addEventListener("click",closeSheet);
 
 // ---- AI 用プロンプト ----
