@@ -3,41 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="息を吹きかけると、タロットカードが1枚引けます。">
+<meta name="description" content="息を吹きかけると、タロットカードが3枚決まります。">
 <meta name="theme-color" content="#141838">
 <title>シンプルタロット</title>
 <style>
-:root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--cw:min(68vw,300px,27svh)}
+:root{--bg:#141838;--ink:#ece6d6;--dim:#9a97b4;--gold:#c8a44c;--cw:min(68vw,300px,27svh);--sw:min(28vw,170px,20svh)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;background:var(--bg);overflow-x:clip}
-body{background:radial-gradient(ellipse 90% 420px at 50% 180px,#232a5e,var(--bg) 100%) no-repeat,var(--bg);overflow-x:clip;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;height:auto;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+body{background:radial-gradient(ellipse 90% 420px at 50% 180px,#232a5e,var(--bg) 100%) no-repeat,var(--bg);overflow-x:clip;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center;justify-content:safe center;min-height:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bottom:28px}
-.spread{display:flex;gap:12px;justify-content:center;align-items:flex-start;margin-bottom:24px}
-.spread[data-n="2"]{--cw:min(40vw,220px,24svh)}
-.spread[data-n="3"]{--cw:min(28vw,170px,20svh)}
-.slot{width:var(--cw);transition:width .5s}
-.scene{perspective:1200px;width:100%;aspect-ratio:400/665;position:relative}
-.scene.set{z-index:2}
-.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.5);background:transparent;transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
+.hidden{display:none!important}
+/* 山札(最初の1枚) */
+.deck{width:var(--cw);margin:0 auto 24px}
+.scene{perspective:1200px;width:100%;aspect-ratio:400/665;position:relative;transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+.ghost{position:absolute;inset:0;border-radius:4% / 2.3%;border:2px solid rgba(200,164,76,.5);transform-origin:50% 110%;pointer-events:none;transition:opacity .6s}
 .ghost.l{animation:swayL 5s ease-in-out infinite}
 .ghost.r{animation:swayR 5.6s ease-in-out infinite}
 .ghost.l2{animation:swayL 7s ease-in-out infinite reverse;opacity:.5}
 .ghost.r2{animation:swayR 7.4s ease-in-out infinite reverse;opacity:.5}
 .blowing .ghost{animation-duration:.7s!important}
-.scene.set .ghost{opacity:0!important}
 @keyframes swayL{0%,100%{transform:rotate(-7deg) translateX(-6%)}50%{transform:rotate(-13deg) translateX(-12%)}}
 @keyframes swayR{0%,100%{transform:rotate(7deg) translateX(6%)}50%{transform:rotate(13deg) translateX(12%)}}
-.card{position:relative;z-index:1;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1.5s cubic-bezier(.4,0,.15,1);cursor:pointer;touch-action:none;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
-.idle .card.pending{animation:floaty 4s ease-in-out infinite}
+.card{position:relative;z-index:1;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1.3s cubic-bezier(.4,0,.15,1);cursor:pointer;touch-action:none;transform:rotate(var(--tilt,0deg)) translate(var(--dx,0px),var(--dy,0px)) rotateY(0)}
+.idle .deck .card{animation:floaty 4s ease-in-out infinite}
 @keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -6px}}
 .card.flipped{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;border-radius:4% / 2.3%;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 12px 40px rgba(0,0,0,.55)}
 .back{background:#1c2050 repeating-linear-gradient(45deg,#1c2050 0 10px,#232862 10px 12px);border:3px solid var(--gold);outline:1px solid var(--gold);outline-offset:-10px}
 .back img{width:100%;height:100%;display:block;object-fit:cover}
-.back::after{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 40%,rgba(236,230,214,.22),transparent 45%),radial-gradient(circle at 70% 65%,rgba(200,164,76,.18),transparent 40%);animation:mist 9s ease-in-out infinite;pointer-events:none}
+.deck .back::after{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 40%,rgba(236,230,214,.22),transparent 45%),radial-gradient(circle at 70% 65%,rgba(200,164,76,.18),transparent 40%);animation:mist 9s ease-in-out infinite;pointer-events:none}
 .tick{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(20,24,56,.72);color:var(--gold);font-size:calc(var(--cw) * .085);letter-spacing:.1em;padding:0 8%;line-height:1.3}
-.blowing .pending .tick{display:flex}
-.blowing .pending .back::after{display:none}
+.blowing .tick{display:flex}
+.blowing .deck .back::after{display:none}
 .front{background:#f4edd8;transform:rotateY(180deg)}
 .front img{width:100%;height:100%;display:block;object-fit:cover;opacity:0;transition:opacity .4s}
 .front img.on{opacity:1}
@@ -45,9 +42,18 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .pulse{animation:pulse 2.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{box-shadow:0 12px 40px rgba(0,0,0,.55)}50%{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 6px rgba(200,164,76,.18)}}
 @keyframes mist{0%,100%{transform:translate(0,0) rotate(0)}33%{transform:translate(8%,-6%) rotate(10deg)}66%{transform:translate(-7%,5%) rotate(-8deg)}}
+/* 3枚の並び */
+.spread{display:flex;gap:12px;justify-content:center;align-items:flex-start;margin-bottom:24px}
+.slot{width:var(--sw);position:relative}
+.slot{animation:deal .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes deal{from{opacity:0;translate:0 -40px;scale:.6}to{opacity:1;translate:0 0;scale:1}}
+.slot.zoom{z-index:5}
+.slot.zoom .scene{transform:scale(1.7) translateX(var(--zx,0))}
+.slot .card.todo .face{box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 2px rgba(200,164,76,.35)}
+.slot .card.todo{animation:pulse 2.2s ease-in-out infinite}
 .pos{font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.1em;min-height:1.2em}
 .cname{font-size:12px;margin-top:2px;min-height:1.2em}
-.spread[data-n="1"] .pos,.spread[data-n="1"] .cname{display:none}
+/* 案内 */
 .fig{display:none;margin:0 auto 10px;width:200px;height:auto}
 .listen .fig{display:block}
 .fig .air{stroke-dasharray:6 6;animation:air 1.2s linear infinite}
@@ -57,10 +63,10 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .msg{min-height:3.2em;font-size:17px;max-width:22em;letter-spacing:.04em}
 .sub{font-size:12px;color:var(--dim);margin-top:10px;max-width:24em}
 .sub a,button.link{color:var(--gold);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
-.done .msg,.done .sub,.reveal .msg,.reveal .sub{display:none}
-.result{display:none;max-width:30em;width:100%}
-.done .result{display:block}
-.reading{display:flex;gap:16px;align-items:center;text-align:left;background:rgba(255,255,255,.055);border-radius:16px;padding:14px 16px;margin-top:12px}
+/* 結果 */
+.result{max-width:30em;width:100%}
+.reading{display:flex;gap:16px;align-items:center;text-align:left;background:rgba(255,255,255,.055);border-radius:16px;padding:14px 16px;margin-top:12px;animation:fade .6s both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
 .reading img{width:64px;flex:none;border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .reading img.rev{transform:rotate(180deg)}
 .reading .t{min-width:0}
@@ -70,18 +76,32 @@ h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:var(--dim);margin-bo
 .badge{display:inline-block;font-size:11px;padding:0 9px;border:1px solid var(--gold);border-radius:12px;color:var(--gold);vertical-align:3px}
 .badge.r{border-color:#c47a7a;color:#e0a0a0}
 .reading p{font-size:14px;margin-top:6px;line-height:1.55}
-.btns{margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.btns button{background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 26px;font:inherit;font-size:15px;cursor:pointer}
+.ai{margin-top:22px;background:rgba(255,255,255,.055);border-radius:16px;padding:16px;animation:fade .6s both}
+.ai h3{font-size:15px;font-weight:600;margin-bottom:10px}
+.ai input{width:100%;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:15px;padding:9px 12px;margin-bottom:12px;user-select:text;-webkit-user-select:text}
+.ai input::placeholder{color:#6f6d8c}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btns button{background:var(--gold);color:#1a1630;border:0;border-radius:24px;padding:10px 22px;font:inherit;font-size:15px;cursor:pointer}
 .btns button.ghostbtn{background:transparent;color:var(--gold);border:1px solid var(--gold)}
-.hint{font-size:12px;color:var(--dim);margin-top:10px}
+.ai details{margin-top:12px;font-size:12px;color:var(--dim)}
+.ai summary{cursor:pointer}
+.ai textarea{width:100%;height:11em;margin-top:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--ink);font:inherit;font-size:12px;line-height:1.5;padding:8px 10px;user-select:text;-webkit-user-select:text}
+.again{margin-top:22px}
+.note{font-size:12px;color:var(--dim);margin-top:10px;min-height:1.2em}
 footer{margin-top:40px;font-size:10px;color:#6b6a85;line-height:1.8}
-footer a{color:inherit}
-@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .card.pending,.back::after,.fig .air{animation:none}}
+@media (prefers-reduced-motion:reduce){.card{transition:transform .2s}.pulse,.ghost,.idle .deck .card,.deck .back::after,.fig .air,.slot{animation:none}}
 </style>
 </head>
 <body>
 <h1>シンプルタロット</h1>
-<div class="spread" id="spread" data-n="1"></div>
+<div class="deck" id="deck"><div class="scene">
+  <div class="ghost l2"></div><div class="ghost r2"></div><div class="ghost l"></div><div class="ghost r"></div>
+  <div class="card pulse" id="deckcard" role="button" tabindex="0" aria-label="山札">
+    <div class="face back"><img alt="" src="cards/back.webp" onerror="this.remove()"><div class="tick" id="tick"></div></div>
+    <div class="face front"></div>
+  </div>
+</div></div>
+<div class="spread hidden" id="spread"></div>
 <svg class="fig" viewBox="0 0 200 100" aria-hidden="true">
   <circle cx="40" cy="50" r="24" fill="none" stroke="#ece6d6" stroke-width="2.5"/>
   <path d="M62 44 l7 6 l-7 6" fill="none" stroke="#ece6d6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,8 +117,19 @@ footer a{color:inherit}
 <p class="msg" id="msg"></p>
 <p class="sub" id="sub"></p>
 <section class="result"><div id="readings"></div>
-  <div class="btns"><button id="more" type="button">もう1枚引く</button><button id="again" type="button" class="ghostbtn">最初から</button></div>
-  <p class="hint" id="hint"></p>
+  <div class="ai hidden" id="ai">
+    <h3>この3枚で、AIに占ってもらう</h3>
+    <input id="q" type="text" maxlength="80" placeholder="占いたいこと(任意) 例: 今の仕事を続けるべき?">
+    <div class="btns">
+      <button id="share" type="button">共有して占う</button>
+      <button id="gpt" type="button" class="ghostbtn">ChatGPT</button>
+      <button id="claude" type="button" class="ghostbtn">Claude</button>
+      <button id="copy" type="button" class="ghostbtn">コピー</button>
+    </div>
+    <p class="note" id="note"></p>
+    <details><summary>送る内容を見る・直す</summary><textarea id="prompt"></textarea></details>
+  </div>
+  <div class="btns again hidden" id="againwrap"><button id="again" type="button" class="ghostbtn">最初から</button></div>
 </section>
 <footer>音は端末の中だけで使い、保存も送信もしません。<br>絵: Pamela Colman Smith (1909) / 意味: A. E. Waite (1911)</footer>
 <script>
@@ -184,106 +215,135 @@ const C=[
 ];
 // ---- 状態 ----
 const $=id=>document.getElementById(id);
-const spread=$("spread"),msg=$("msg"),sub=$("sub"),meter=$("meter"),level=$("level"),body=document.body;
-const POS=["状況","課題","助言"],MAX=3;
+const deck=$("deck"),deckcard=$("deckcard"),spread=$("spread"),msg=$("msg"),sub=$("sub"),meter=$("meter"),level=$("level"),body=document.body;
+const POS=["状況","課題","助言"];
 const touch=matchMedia("(pointer: coarse)").matches;
 const secure=window.isSecureContext&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
-let state="idle";   // idle | listen | mix | done
-let drawn=[];       // {n, rev, slot}
-let slot=null;      // いま引こうとしているスロット {el, card, art, tick, pos, cname}
-let stream=null,raf=0,fingerPts=[];
+let state="idle";   // idle | listen | mix | dealt | done
+let drawn=[];       // [{n, rev, slot, shown}]
+let stream=null,raf=0,fingerPts=[],busy=false;
 const mouseTrail=[];
 addEventListener("pointermove",e=>{mouseTrail.push(e.clientX,e.clientY,performance.now());if(mouseTrail.length>900)mouseTrail.splice(0,300);},{passive:true});
-const PRIVACY="音は端末の中だけで使い、保存も送信もしません。";
 function setMsg(m,s){msg.textContent=m;sub.innerHTML=s||"";}
 function setState(st){state=st;body.className=st;}
 
-// ---- スロット(カード1枚分の表示) ----
-function addSlot(){
-  const el=document.createElement("div");el.className="slot";
-  el.innerHTML='<div class="scene"><div class="ghost l2"></div><div class="ghost r2"></div><div class="ghost l"></div><div class="ghost r"></div><div class="card pending pulse" role="button" tabindex="0" aria-label="カード">'+
-    '<div class="face back"><img alt="" src="cards/back.webp" onerror="this.remove()"><div class="tick"></div></div>'+
-    '<div class="face front"><img alt=""></div></div></div>'+
-    '<div class="pos"></div><div class="cname"></div>';
-  spread.appendChild(el);spread.dataset.n=spread.children.length;
-  const card=el.querySelector(".card");
-  card.addEventListener("click",onTap);
-  card.addEventListener("pointermove",mixMove,{passive:true});
-  card.addEventListener("pointerdown",e=>{if(state==="mix")mixMove(e);});
-  card.addEventListener("pointerup",()=>{if(state==="mix"&&fingerPts.length>=60)finish(concat(f64(fingerPts),f64([Date.now()])));});
-  card.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&state==="idle"){e.preventDefault();card.click();}});
-  slot={el,card,art:el.querySelector(".front img"),tick:el.querySelector(".tick"),pos:el.querySelector(".pos"),cname:el.querySelector(".cname")};
-  slot.pos.textContent=POS[spread.children.length-1];
-  relabel();
-}
-function relabel(){[...spread.children].forEach((s,i)=>{s.querySelector(".pos").textContent=POS[i];});}
 function idle(){
-  setState("idle");meter.style.visibility="hidden";
-  if(touch&&secure)setMsg("タップして、息を吹きかける",'息の音でカードが混ざり、1枚が決まります。<br><button class="link" id="finger" type="button">指でまぜて引く</button>');
-  else if(touch)setMsg("カードを指でなでて引く",'指の動きでカードが混ざり、1枚が決まります。');
-  else setMsg("クリックして引く",'マウスの動きでカードが混ざり、1枚が決まります。');
+  stopMic();cancelAnimationFrame(raf);drawn=[];busy=false;
+  spread.innerHTML="";spread.classList.add("hidden");deck.classList.remove("hidden");
+  deckcard.className="card pulse";deckcard.style.cssText="";
+  $("readings").innerHTML="";$("ai").classList.add("hidden");$("againwrap").classList.add("hidden");$("q").value="";$("note").textContent="";
+  meter.style.visibility="hidden";setState("idle");
+  if(touch&&secure)setMsg("タップして、息を吹きかける",'息の音でカードが混ざり、3枚が決まります。<br><button class="link" id="finger" type="button">指でまぜて引く</button>');
+  else if(touch)setMsg("カードを指でなでて引く",'指の動きでカードが混ざり、3枚が決まります。');
+  else setMsg("クリックして引く",'マウスの動きでカードが混ざり、3枚が決まります。');
   const f=$("finger");if(f)f.addEventListener("click",e=>{e.stopPropagation();startMix();});
+  window.scrollTo({top:0,behavior:"smooth"});
 }
-function reset(){
-  stopMic();cancelAnimationFrame(raf);drawn=[];spread.innerHTML="";$("readings").innerHTML="";
-  addSlot();idle();window.scrollTo({top:0,behavior:"smooth"});
-}
-function onTap(){
+deckcard.addEventListener("click",()=>{
   if(state!=="idle")return;
   if(touch&&secure)startListen();
   else if(touch)startMix();
   else finish(concat(f64(mouseTrail),f64([performance.now(),Date.now()])));
-}
+});
+deckcard.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&state==="idle"){e.preventDefault();deckcard.click();}});
 
-// ---- 乱数: 材料 → SHA-256 → ブラウザ乱数と混ぜて SHA-256 → 残りの枚数から1枚と向き ----
+// ---- 乱数: 材料 → SHA-256 → ブラウザ乱数と混ぜて SHA-256 → 重複なしで3枚と向き ----
 async function digest(b){return new Uint8Array(await crypto.subtle.digest("SHA-256",b));}
-async function pick(material,m){
+async function pick3(material){
   let h;
   if(crypto.subtle){
     const h1=await digest(material);
     const mix=new Uint8Array(64);mix.set(h1);mix.set(crypto.getRandomValues(new Uint8Array(32)),32);
     h=await digest(mix);
   }else h=crypto.getRandomValues(new Uint8Array(32));
-  const lim=256-(256%m);   // m で割り切れる範囲だけ使い、どのカードも同じ確率にする
-  for(let round=0;;round++){
-    for(let i=0;i<h.length-1;i++)if(h[i]<lim)return{k:h[i]%m,rev:(h[i+1]&1)===1};
-    const again=new Uint8Array(33);again.set(h);again[32]=round;
-    h=crypto.subtle?await digest(again):crypto.getRandomValues(new Uint8Array(32));
+  const rest=[];for(let i=0;i<78;i++)rest.push(i);
+  const out=[];let i=0,round=0;
+  while(out.length<3){
+    if(i>=h.length-1){const again=new Uint8Array(33);again.set(h);again[32]=round++;h=crypto.subtle?await digest(again):crypto.getRandomValues(new Uint8Array(32));i=0;}
+    const m=rest.length,lim=256-(256%m);   // m で割り切れる範囲だけ使い、どのカードも同じ確率にする
+    if(h[i]<lim){out.push({n:rest.splice(h[i]%m,1)[0],rev:(h[i+1]&1)===1});i+=2;}else i++;
   }
+  return out;
 }
 function f64(arr){return new Uint8Array(new Float64Array(arr).buffer);}
 function concat(...parts){const n=parts.reduce((s,p)=>s+p.length,0),o=new Uint8Array(n);let i=0;for(const p of parts){o.set(p,i);i+=p.length;}return o;}
 
-// ---- 結果 ----
+// ---- 3枚を決めて並べる ----
 async function finish(material){
-  setState("reveal");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
-  const used=new Set(drawn.map(d=>d.n));
-  const rest=[];for(let i=0;i<78;i++)if(!used.has(i))rest.push(i);
-  const {k,rev}=await pick(material,rest.length);
-  const n=rest[k],c=C[n],s=slot;
-  drawn.push({n,rev});
-  s.card.classList.toggle("rev",rev);s.card.classList.remove("pulse","pending");s.card.style.cssText="";s.el.querySelector(".scene").classList.add("set");
-  s.art.alt=c[0];s.art.onload=()=>s.art.classList.add("on");s.art.src="cards/"+String(n).padStart(2,"0")+".webp";
-  const item=document.createElement("article");item.className="reading";
-  item.innerHTML='<img alt="" class="'+(rev?"rev":"")+'"><div class="t"><div class="p">'+(drawn.length>1||spread.children.length>1?(drawn.length+". "+POS[drawn.length-1]):"")+'</div><h2></h2>'+
-    '<span class="badge'+(rev?" r":"")+'">'+(rev?"逆位置":"正位置")+'</span><div class="en"></div><p></p></div>';
-  item.querySelector("img").src=s.art.src;
-  item.querySelector("h2").textContent=c[0];item.querySelector(".en").textContent=c[1];item.querySelector("p").textContent=rev?c[3]:c[2];
-
-  if(drawn.length>1)$("readings").firstChild.querySelector(".p").textContent="1. "+POS[0];
-  $("more").style.display=drawn.length<MAX?"":"none";
-  $("hint").textContent=drawn.length===1?"もう1枚引くと「状況・課題・助言」の3枚引きになります。":drawn.length===2?"あと1枚で「助言」が出ます。":"";
-  setTimeout(()=>{s.card.classList.add("flipped");},900);
-  setTimeout(()=>{   // めくり終わってから名前・説明を出す
-    s.cname.textContent=c[0]+(rev?" (逆)":"");
-    $("readings").appendChild(item);
-    setState("done");
-  },2300);
+  setState("dealt");stopMic();cancelAnimationFrame(raf);meter.style.visibility="hidden";
+  drawn=await pick3(material);
+  deck.classList.add("hidden");spread.classList.remove("hidden");spread.innerHTML="";
+  drawn.forEach((d,i)=>{
+    const el=document.createElement("div");el.className="slot";el.style.setProperty("--zx",i===0?"28%":i===2?"-28%":"0");
+    el.innerHTML='<div class="scene"><div class="card todo" role="button" tabindex="0" aria-label="'+POS[i]+'のカード(裏向き)">'+
+      '<div class="face back"><img alt="" src="cards/back.webp" onerror="this.remove()"></div>'+
+      '<div class="face front"><img alt=""></div></div></div><div class="pos">'+POS[i]+'</div><div class="cname"></div>';
+    el.style.animationDelay=(i*150)+"ms";
+    d.slot=el;d.card=el.querySelector(".card");d.art=el.querySelector(".front img");d.shown=false;
+    d.art.src="cards/"+String(d.n).padStart(2,"0")+".webp";   // 決まった3枚だけ先に読み込む
+    d.art.onload=()=>d.art.classList.add("on");
+    d.card.addEventListener("click",()=>reveal(d,i));
+    d.card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal(d,i);}});
+    spread.appendChild(el);
+  });
+  setMsg("カードをタップしてめくる","状況・課題・助言の順でなくても大丈夫です。");
 }
+function reveal(d,i){
+  if(state!=="dealt"||d.shown||busy)return;
+  d.shown=true;busy=true;
+  const c=C[d.n];
+  d.card.classList.remove("todo");d.card.classList.toggle("rev",d.rev);
+  d.slot.classList.add("zoom");
+  setTimeout(()=>d.card.classList.add("flipped"),450);
+  setTimeout(()=>{
+    d.slot.querySelector(".cname").textContent=c[0]+(d.rev?" (逆)":"");
+    const item=document.createElement("article");item.className="reading";
+    item.innerHTML='<img alt="" class="'+(d.rev?"rev":"")+'" src="'+d.art.src+'"><div class="t"><div class="p">'+(i+1)+". "+POS[i]+'</div><h2></h2>'+
+      '<span class="badge'+(d.rev?" r":"")+'">'+(d.rev?"逆位置":"正位置")+'</span><div class="en"></div><p></p></div>';
+    item.querySelector("h2").textContent=c[0];item.querySelector(".en").textContent=c[1];item.querySelector("p").textContent=d.rev?c[3]:c[2];
+    item.dataset.i=i;
+    const next=[...$("readings").children].find(x=>Number(x.dataset.i)>i);
+    $("readings").insertBefore(item,next||null);
+  },1800);
+  setTimeout(()=>{
+    d.slot.classList.remove("zoom");busy=false;
+    if(drawn.every(x=>x.shown)){
+      setState("done");setMsg("","");
+      $("ai").classList.remove("hidden");$("againwrap").classList.remove("hidden");
+      buildPrompt();
+    }
+  },2400);
+}
+
+// ---- AI 用プロンプト ----
+function buildPrompt(){
+  const q=$("q").value.trim();
+  const lines=drawn.map((d,i)=>{const c=C[d.n];return (i+1)+". "+POS[i]+": "+c[0]+"("+c[1]+")"+(d.rev?" 逆位置":" 正位置")+" — "+(d.rev?c[3]:c[2]);});
+  $("prompt").value=
+"タロット占いをお願いします。ウェイト=スミス版で3枚引き(状況・課題・助言)をしました。\n\n"+
+"占いたいこと: "+(q||"特に決めていません。今の自分へのメッセージとして読んでください。")+"\n\n"+
+lines.join("\n")+"\n\n"+
+"それぞれのカードの意味と、3枚のつながりを踏まえて、やさしい言葉で300字くらいにまとめてください。最後に、今日できる小さな一歩をひとつ提案してください。";
+  return $("prompt").value;
+}
+$("q").addEventListener("input",buildPrompt);
+async function copyPrompt(){
+  const t=$("prompt").value;
+  try{await navigator.clipboard.writeText(t);}catch(e){$("prompt").select();document.execCommand("copy");}
+}
+$("share").addEventListener("click",async()=>{
+  const t=buildPrompt();
+  if(navigator.share){try{await navigator.share({text:t});$("note").textContent="";}catch(e){}}
+  else{await copyPrompt();$("note").textContent="コピーしました。ChatGPT や Gemini に貼り付けてください。";}
+});
+$("gpt").addEventListener("click",()=>{window.open("https://chatgpt.com/?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");});
+$("claude").addEventListener("click",()=>{window.open("https://claude.ai/new?q="+encodeURIComponent(buildPrompt()),"_blank","noopener");});
+$("copy").addEventListener("click",async()=>{buildPrompt();await copyPrompt();$("note").textContent="コピーしました。";});
+$("again").addEventListener("click",idle);
 
 // ---- 息で引く ----
 async function startListen(){
-  setState("listen");slot.card.classList.remove("pulse");
+  setState("listen");deckcard.classList.remove("pulse");
   setMsg("マイクを準備しています…","");
   try{
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
@@ -311,10 +371,10 @@ async function startListen(){
     if(!blowing&&above>=250){blowing=true;tStart=now;body.classList.add("blowing");setMsg("そのまま…","カードが混ざっています");}
     if(blowing){
       if(chunks.length<120)chunks.push(buf.slice());
-      slot.card.style.setProperty("--tilt",((Math.random()-.5)*k*10).toFixed(2)+"deg");
-      slot.card.style.setProperty("--dx",((Math.random()-.5)*k*12).toFixed(1)+"px");
-      slot.card.style.setProperty("--dy",((Math.random()-.5)*k*8).toFixed(1)+"px");
-      if(frame++%3===0)slot.tick.textContent=C[Math.floor(Math.random()*78)][0];  // 候補が入れ替わる様子
+      deckcard.style.setProperty("--tilt",((Math.random()-.5)*k*10).toFixed(2)+"deg");
+      deckcard.style.setProperty("--dx",((Math.random()-.5)*k*12).toFixed(1)+"px");
+      deckcard.style.setProperty("--dy",((Math.random()-.5)*k*8).toFixed(1)+"px");
+      if(frame++%3===0)$("tick").textContent=C[Math.floor(Math.random()*78)][0];
       if(below>=400||now-tStart>4000){body.classList.remove("blowing");ac.close();return finish(concat(...chunks,f64([tStart,now,Date.now()])));}
     }else if(now-t0>12000&&!lastHint){lastHint=1;setMsg("マイクに、ふーっと息を吹きかける",'反応しないときは <button class="link" id="finger2" type="button">指で混ぜて引く</button>');$("finger2").addEventListener("click",e=>{e.stopPropagation();ac.close();startMix();});}
     raf=requestAnimationFrame(tick);
@@ -325,22 +385,21 @@ function stopMic(){body.classList.remove("blowing");if(stream){stream.getTracks(
 
 // ---- 指で混ぜる ----
 function startMix(){
-  stopMic();cancelAnimationFrame(raf);setState("mix");fingerPts=[];slot.card.classList.remove("pulse");meter.style.visibility="visible";level.style.width="0";
-  setMsg("カードを指でぐるぐるなでる","指の動きでカードが混ざり、1枚が決まります。");
+  stopMic();cancelAnimationFrame(raf);setState("mix");fingerPts=[];deckcard.classList.remove("pulse");meter.style.visibility="visible";level.style.width="0";
+  setMsg("カードを指でぐるぐるなでる","指の動きでカードが混ざり、3枚が決まります。");
 }
 function mixMove(e){
   if(state!=="mix"||!(e.buttons&1||e.pointerType==="touch"))return;
   fingerPts.push(e.clientX,e.clientY,performance.now());
   const k=Math.min(1,fingerPts.length/150);level.style.width=(k*100).toFixed(0)+"%";
-  slot.card.style.setProperty("--tilt",((Math.random()-.5)*k*8).toFixed(2)+"deg");
+  deckcard.style.setProperty("--tilt",((Math.random()-.5)*k*8).toFixed(2)+"deg");
   if(fingerPts.length>=150)finish(concat(f64(fingerPts),f64([Date.now()])));
 }
-
-// ---- ボタン ----
-$("more").addEventListener("click",()=>{if(state!=="done"||drawn.length>=MAX)return;addSlot();idle();const r=slot.el.getBoundingClientRect();window.scrollTo({left:0,top:scrollY+r.top-(innerHeight-r.height)/2,behavior:"smooth"});});
-$("again").addEventListener("click",reset);
+deckcard.addEventListener("pointermove",mixMove,{passive:true});
+deckcard.addEventListener("pointerdown",e=>{if(state==="mix")mixMove(e);});
+deckcard.addEventListener("pointerup",()=>{if(state==="mix"&&fingerPts.length>=60)finish(concat(f64(fingerPts),f64([Date.now()])));});
 addEventListener("pagehide",stopMic);
-reset();
+idle();
 </script>
 </body>
 </html>
